@@ -1,3 +1,4 @@
+import { ProductImage } from "../../shared/components/product-image";
 import { randomUUID } from "../../shared/uuid";
 import { RecordDetail } from "./record-detail";
 import { useEffect, useState } from "react";
@@ -143,26 +144,73 @@ export default function Management() {
       setBusy(false);
     }
   }
-  async function exportExcel() {
+  async function exportReport(format: "xlsx" | "pdf") {
     setBusy(true);
     setError("");
     try {
-      const { workbookBlob } = await import("../../shared/spreadsheets");
+      const { reportAssets } = await import("../../shared/report-assets");
+      const { productColumns, productReportRows, reportMetrics } =
+        await import("../../shared/report-data");
       const { download } = await import("../../shared/download");
-      const blob = await workbookBlob(
-        config.columns.map(([key, label, type]) => ({
-          key,
-          label,
-          numeric: type === "number" || type === "money",
-          currency: type === "money",
-        })),
-        data.data ?? [],
-        config.title,
+      const products = config.entity === "products";
+      const rows = products
+        ? productReportRows(data.data ?? [])
+        : (data.data ?? []).map((row) => ({
+            ...row,
+            ...Object.fromEntries(
+              config.columns
+                .filter((c) => c[2] === "date")
+                .map(([key]) => [key, date(row[key])]),
+            ),
+          }));
+      const columns = products
+        ? productColumns
+        : config.columns.map(([key, label, type]) => ({
+            key,
+            label,
+            numeric: type === "number" || type === "money",
+            currency: type === "money",
+          }));
+      const assets = await reportAssets(products ? rows : []);
+      const scope = `Página ${page + 1}. ${rows.length} registros. Búsqueda: ${params.get("q") || "sin filtro"}.`;
+      let blob: Blob;
+      if (format === "xlsx") {
+        const { workbookBlob } = await import("../../shared/spreadsheets");
+        blob = await workbookBlob(columns, rows, config.title, {
+          products,
+          scope,
+          assets,
+        });
+      } else {
+        const { reportPDF } = await import("../../shared/documents");
+        const metric = reportMetrics(rows, products).find((m) => m.currency);
+        const bytes = await reportPDF({
+          title: products ? "Inventario de productos" : config.title,
+          subtitle: new Date().toLocaleString("es-PE", {
+            timeZone: "America/Lima",
+          }),
+          columns,
+          rows,
+          scope,
+          landscape: true,
+          assets,
+          totals: metric
+            ? [{ label: "Valor a precio de venta", value: money(metric.value) }]
+            : undefined,
+          footer: products
+            ? "Valor calculado a precio de venta. No representa costo contable. Ilustraciones de productos."
+            : "Documento interno de ACEMAR.",
+        });
+        blob = new Blob([new Uint8Array(bytes).buffer], {
+          type: "application/pdf",
+        });
+      }
+      download(blob, `acemar-${module}-pagina-${page + 1}.${format}`);
+      setNotice(
+        `Se exportó la página visible con sus filtros a ${format === "xlsx" ? "Excel" : "PDF"}.${assets.missing ? ` ${assets.missing} imágenes no pudieron incluirse.` : ""}`,
       );
-      download(blob, `acemar-${module}-pagina-${page + 1}.xlsx`);
-      setNotice("Se exportó la página visible con sus filtros a Excel.");
     } catch {
-      setError("No se pudo generar el archivo Excel. Reintenta.");
+      setError("No se pudo generar el reporte. Reintenta.");
     } finally {
       setBusy(false);
     }
@@ -181,10 +229,17 @@ export default function Management() {
           <Button
             variant="secondary"
             disabled={busy || !data.data?.length}
-            onClick={() => void exportExcel()}
+            onClick={() => void exportReport("xlsx")}
           >
             <Download size={17} />
             Exportar Excel
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={busy || !data.data?.length}
+            onClick={() => void exportReport("pdf")}
+          >
+            <Download size={17} /> Exportar PDF
           </Button>
           {config.create && (
             <Button onClick={() => setEditing(null)}>
@@ -272,7 +327,22 @@ export default function Management() {
                     {config.columns.map((c) => (
                       <td data-label={c[1]} key={c[0]}>
                         {c[0] === "name" && config.entity === "products" ? (
-                          <strong>{String(row[c[0]])}</strong>
+                          <div className="product-list-identity">
+                            <ProductImage
+                              src={
+                                typeof row.image_url === "string"
+                                  ? row.image_url
+                                  : null
+                              }
+                              name={String(row.name)}
+                            />
+                            <div>
+                              <strong>{String(row[c[0]])}</strong>
+                              {row.image_generated === true && (
+                                <small>Ilustración</small>
+                              )}
+                            </div>
+                          </div>
                         ) : (
                           format(row[c[0]], c[2])
                         )}

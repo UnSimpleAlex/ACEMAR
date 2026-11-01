@@ -1763,3 +1763,44 @@ h3 {
     padding: 24px;
   }
 }
+
+.product-list-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  min-width: 220px;
+}
+.product-list-identity .product-image {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 8px;
+}
+.product-list-identity .product-image img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+.product-list-identity .product-image svg {
+  width: 32px;
+  height: 32px;
+}
+.product-list-identity small {
+  display: block;
+  margin-top: 4px;
+  color: #52637b;
+  font-size: 11px;
+}
+@media (max-width: 767px) {
+  .product-list-identity {
+    min-width: 0;
+    flex: 1;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .product-list-identity > div:last-child {
+    max-width: 180px;
+  }
+}
