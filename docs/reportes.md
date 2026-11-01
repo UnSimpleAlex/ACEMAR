@@ -33,3 +33,15 @@ La conversión para exportar limita las solicitudes al bucket público de ACEMAR
 Pruebas: estructura y marca del XLSX, tres hojas, estilos, imágenes incrustadas, números y estados, texto con fórmula aparente, PDF real paginado y errores por registros excesivos. Pruebas de integración de interfaz verifican miniaturas y botones de exportación en Productos y Existencias.
 
 Se generaron muestras con el código real, se inspeccionaron visualmente las tres hojas con Artifact Tool y los PDF con Poppler, y se comprobó la incrustación de fuentes. Es una revisión de archivos e interfaz automatizada; el recorrido autenticado completo en Excel de escritorio y en todos los dispositivos sigue siendo una validación del usuario.
+
+## Cobertura de productos y filtros (#13)
+
+Las consultas autorizadas de lotes, ventas y proformas añaden URL, indicador de ilustración y vínculo por unidad/producto a la imagen actual. No sustituyen nombres, precios ni factores históricos. La proyección de auditoría enriquece sus líneas sin reescribir los eventos guardados; su helper carece de acceso directo para anon y authenticated.
+
+Las imágenes aparecen en lotes (lista, selección y detalle), edición de producto, unidades, carrito, ticket y corrección de venta, proformas y líneas de auditoría. Los PDF de venta y proforma incluyen columna de foto; lotes incluye foto en PDF y Excel. Si no existe una imagen o falla su descarga, se mantiene el texto y un indicador accesible. Son ilustraciones actuales, no una fotografía histórica archivada con cada venta.
+
+El centrado vertical del PDF utiliza los límites de los glifos reales de DejaVu, incluyendo acentos, descendentes y bloques de varias líneas. Para fuentes estándar se conservan métricas de ascenso/descenso.
+
+El XLSX mantiene los cinco iconos exactos del adjunto y los dos gráficos editables. Los filtros nativos de los encabezados permiten buscar y combinar producto/código, unidad y estado. Se usan estos controles en lugar de celdas de búsqueda simuladas: las fotos están ancladas para moverse y ocultarse con su fila. SUBTOTAL genera una máscara de visibilidad en Datos; indicadores, disponibilidad y clasificación de los cinco mayores valores se recalculan desde ella, y alimentan ambos gráficos. Para restablecer todos los registros, borrar los filtros de la hoja principal. Las categorías del ejemplo gastronómico se sustituyen por campos reales de ACEMAR; no se inventa una clasificación del catálogo.
+
+El archivo sigue siendo una instantánea de la página exportada. No sincroniza cambios con InsForge. La validación incluye XML completo, lectura independiente de filtros/gráficos y revisión visual. La interacción nativa en Excel de escritorio sigue pendiente de validación en el equipo del usuario.

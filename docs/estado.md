@@ -57,3 +57,7 @@ Los reportes siguen limitados a la página visible y sus filtros. El valor mostr
 ## Afinado visual (#11)
 
 Las 12 ilustraciones se editan para retirar el fondo y se publican como WebP RGBA 640 × 640 (524.308 bytes en conjunto); el fondo lo controla CSS. Se preserva transparencia en las miniaturas exportadas. Se conservan los objetos anteriores y las nuevas asociaciones no modifican precios ni stock. El PDF centra verticalmente encabezados y contenido. El Excel recupera los iconos originales y dos gráficos nativos editables (barras y dona), con series vinculadas al Resumen y datos reales de la página exportada. Verificación: 30 pruebas, tipos, lint, compilación, lectura independiente de ambos gráficos y revisión visual de las hojas y PDF.
+
+## Cobertura completa de imágenes y filtros (#13)
+
+Se completan miniaturas en lotes, formularios, unidades, carrito, venta/corrección, proformas y auditoría, además de sus exportaciones cuando contienen productos. La migración enriquece únicamente las respuestas autorizadas con la imagen actual del producto, conserva datos históricos y mantiene bloqueado el helper de auditoría. El PDF centra bloques por límites reales de glifos; el Excel incorpora filtros de encabezados y fórmulas del resumen basadas en filas visibles, preservando los gráficos nativos e iconos originales. Verificación local: 35 pruebas de interfaz/reportes, 14 de base de datos, tipos, lint y build. El recorrido autenticado y el comportamiento en Excel de escritorio requieren revisión del usuario.
