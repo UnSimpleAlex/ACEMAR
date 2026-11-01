@@ -215,6 +215,44 @@ export async function workbookBlob(
           title: String(r.name),
         });
     });
+  options.assets?.icons
+    ?.slice(0, 4)
+    .forEach((icon, i) =>
+      images.push({
+        content: new Blob([new Uint8Array(icon).buffer]),
+        contentType: "image/png",
+        width: 30,
+        height: 30,
+        dpi: 96,
+        anchor: { row: 8, column: i * 2 + 1 },
+        offsetX: 10,
+        offsetY: 4,
+        title: `Indicador ${metrics[i].label}`,
+      }),
+    );
+  if (options.assets?.icons?.[4])
+    images.push({
+      content: new Blob([new Uint8Array(options.assets.icons[4]).buffer]),
+      contentType: "image/png",
+      width: 24,
+      height: 24,
+      dpi: 96,
+      anchor: { row: 11, column: 1 },
+      offsetX: 12,
+      offsetY: 7,
+      title: "Búsqueda aplicada",
+    });
+  data[10][0] = text("", { height: 30 });
+  data[10][1] = text(
+    options.scope ?? "Página visible con los filtros aplicados",
+    {
+      columnSpan: count - 1,
+      fontSize: 10,
+      textColor: muted,
+      height: 30,
+      wrap: true,
+    },
+  );
   // The XLSX writer requires all cells covered by a merge to be empty.
   data.forEach((row, r) =>
     row.forEach((cell, c) => {
@@ -248,72 +286,161 @@ export async function workbookBlob(
   };
   const sheets: Sheet<Blob>[] = [main];
   if (options.products) {
-    const summary: SheetData = Array.from({ length: 28 }, () =>
-      Array.from({ length: 8 }, () => text("", { height: 24 })),
+    const summary: SheetData = Array.from({ length: 46 }, () =>
+      Array.from({ length: 17 }, () => text("", { height: 24 })),
     );
-    summary[1][0] = text("RESUMEN DEL INVENTARIO", {
-      columnSpan: 8,
+    summary[0] = summary[0].map((c) => ({
+      ...(c as CellObject),
+      backgroundColor: navy,
+      height: 9,
+    }));
+    summary[1][1] = text("RESUMEN DEL INVENTARIO", {
+      columnSpan: 15,
+      rowSpan: 2,
       fontFamily: "Copperplate Gothic Bold",
       fontSize: 21,
       fontWeight: "bold",
-      height: 36,
+      align: "center",
+      height: 35,
     });
-    summary[3][0] = text(`ACEMAR    /    ${stamp}`, {
-      columnSpan: 8,
+    summary[3][1] = text(`ACEMAR    /    ${stamp}`, {
+      columnSpan: 15,
+      fontFamily: "Bahnschrift",
+      fontWeight: "bold",
+      textColor: muted,
+      height: 26,
+    });
+    summary[4][1] = text("", {
+      columnSpan: 15,
+      backgroundColor: blue,
+      height: 4,
+    });
+    const positions = [1, 5, 9, 13];
+    metrics.forEach((m, i) => {
+      const col = positions[i];
+      summary[6][col] = text(m.label, {
+        columnSpan: 3,
+        fontFamily: "Bahnschrift",
+        fontSize: 10,
+        fontWeight: "bold",
+        textColor: "#FFFFFF",
+        backgroundColor: blue,
+        align: "center",
+        wrap: true,
+        height: 25,
+      });
+      summary[7][col] =
+        typeof m.value === "number"
+          ? {
+              ...text(""),
+              value: m.value,
+              type: Number,
+              columnSpan: 3,
+              rowSpan: 2,
+              fontSize: 19,
+              fontWeight: "bold",
+              textColor: blue,
+              align: "center",
+              format: m.currency ? '"S/ "#,##0.00' : "0",
+              height: 21,
+            }
+          : text(m.value, {
+              columnSpan: 3,
+              rowSpan: 2,
+              fontSize: 13,
+              fontWeight: "bold",
+              textColor: blue,
+              align: "center",
+              height: 21,
+            });
+    });
+    summary[10][1] = text("DISPONIBILIDAD", {
+      columnSpan: 7,
+      fontFamily: "Bahnschrift",
+      fontWeight: "bold",
+      textColor: "#FFFFFF",
+      backgroundColor: blue,
+    });
+    summary[10][9] = text("VALOR A PRECIO DE VENTA", {
+      columnSpan: 7,
+      fontFamily: "Bahnschrift",
+      fontWeight: "bold",
+      textColor: "#FFFFFF",
+      backgroundColor: blue,
+    });
+    summary[12][1] = text("ESTADO", {
+      columnSpan: 3,
       fontFamily: "Bahnschrift",
       fontWeight: "bold",
       textColor: muted,
     });
-    summary[4] = blank(4).map((c) => ({ ...c, backgroundColor: blue }));
-    summary[6] = labels.map((c) => (c && typeof c === "object" ? { ...c } : c));
-    summary[7] = values.map((c) => (c && typeof c === "object" ? { ...c } : c));
-    summary[10][0] = text("DISPONIBILIDAD", {
+    summary[12][4] = text("PRODUCTOS", {
       columnSpan: 4,
       fontFamily: "Bahnschrift",
       fontWeight: "bold",
-      textColor: "#FFFFFF",
-      backgroundColor: blue,
-    });
-    summary[10][4] = text("MAYOR VALOR A PRECIO DE VENTA", {
-      columnSpan: 4,
-      fontFamily: "Bahnschrift",
-      fontWeight: "bold",
-      textColor: "#FFFFFF",
-      backgroundColor: blue,
+      textColor: muted,
+      align: "center",
     });
     ["Disponible", "Stock bajo", "Agotado"].forEach((state, i) => {
-      summary[12 + i][0] = text(state, { columnSpan: 2 });
-      summary[12 + i][2] = {
+      summary[13 + i][1] = text(state, { columnSpan: 3 });
+      summary[13 + i][4] = {
+        ...text(""),
         value: rows.filter((r) => r.stock_state === state).length,
         type: Number,
-        fontFamily: "Consolas",
+        columnSpan: 4,
         fontSize: 12,
+        align: "center",
       };
+    });
+    summary[24][1] = text("PRODUCTOS CON MAYOR VALOR DE VENTA", {
+      columnSpan: 7,
+      fontFamily: "Bahnschrift",
+      fontWeight: "bold",
+      backgroundColor: blue,
+      textColor: "#FFFFFF",
+    });
+    summary[26][1] = text("PRODUCTO", {
+      columnSpan: 5,
+      fontFamily: "Bahnschrift",
+      fontWeight: "bold",
+      textColor: muted,
+    });
+    summary[26][6] = text("VALOR (S/)", {
+      columnSpan: 2,
+      fontFamily: "Bahnschrift",
+      fontWeight: "bold",
+      textColor: muted,
+      align: "right",
     });
     [...rows]
       .sort((a, b) => Number(b.stock_value) - Number(a.stock_value))
       .slice(0, 5)
       .forEach((r, i) => {
-        summary[12 + i][4] = text(r.name, {
-          columnSpan: 3,
+        summary[27 + i][1] = text(r.name, {
+          columnSpan: 5,
           wrap: true,
-          height: 36,
+          height: 32,
         });
-        summary[12 + i][7] = {
+        summary[27 + i][6] = {
+          ...text(""),
           value: Number(r.stock_value),
           type: Number,
+          columnSpan: 2,
           format: '"S/ "#,##0.00',
-          fontFamily: "Consolas",
-          fontSize: 10,
+          align: "right",
         };
       });
-    summary[20][0] = text(
+    summary[35][1] = text(
       options.scope ?? "Página visible con los filtros aplicados",
-      { columnSpan: 8, fontSize: 9, textColor: muted, wrap: true },
+      { columnSpan: 7, rowSpan: 2, fontSize: 9, textColor: muted, wrap: true },
     );
-    summary[22][0] = text(
-      "Valor a precio de venta; no representa costo contable. No se suman unidades distintas.",
-      { columnSpan: 8, fontSize: 9, textColor: muted, wrap: true, height: 32 },
+    summary[38][1] = text(
+      "Valor a precio de venta, no costo contable. No se suman unidades distintas.",
+      { columnSpan: 7, rowSpan: 2, fontSize: 9, textColor: muted, wrap: true },
+    );
+    summary[45][1] = text(
+      "ACEMAR · Gestión comercial · Importes en soles (PEN).",
+      { columnSpan: 15, fontSize: 9, textColor: muted },
     );
     summary.forEach((row, r) =>
       row.forEach((cell, c) => {
@@ -329,6 +456,34 @@ export async function workbookBlob(
             if (dx || dy) summary[r + dy][c + dx] = null;
       }),
     );
+    const summaryImages = [];
+    if (options.assets?.logo)
+      summaryImages.push({
+        content: new Blob([new Uint8Array(options.assets.logo).buffer]),
+        contentType: "image/png",
+        width: 194,
+        height: 46,
+        dpi: 96,
+        anchor: { row: 2, column: 2 },
+        offsetX: 4,
+        offsetY: 5,
+        title: "ACEMAR",
+      });
+    options.assets?.icons
+      ?.slice(0, 4)
+      .forEach((icon, i) =>
+        summaryImages.push({
+          content: new Blob([new Uint8Array(icon).buffer]),
+          contentType: "image/png",
+          width: 30,
+          height: 30,
+          dpi: 96,
+          anchor: { row: 8, column: positions[i] + 1 },
+          offsetX: 10,
+          offsetY: 4,
+          title: `Indicador ${metrics[i].label}`,
+        }),
+      );
     const rawColumns: ExportColumn[] = [
       { key: "code", label: "Código" },
       { key: "name", label: "Producto" },
@@ -377,7 +532,10 @@ export async function workbookBlob(
         data: summary,
         showGridLines: false,
         orientation: "landscape",
-        columns: Array.from({ length: 8 }, () => ({ width: 22 })),
+        columns: [
+          3, 19, 12, 12, 13, 13, 14, 14, 3, 13, 13, 13, 13, 13, 13, 13, 3,
+        ].map((width) => ({ width })),
+        images: summaryImages,
       },
       {
         sheet: "Datos",
@@ -388,8 +546,11 @@ export async function workbookBlob(
       },
     );
   }
-  return writeXlsxFile(sheets, {
+  const blob = await writeXlsxFile(sheets, {
     fontFamily: "Consolas",
     fontSize: 10,
   }).toBlob();
+  return options.products
+    ? (await import("./inventory-charts")).inventoryCharts(blob, rows)
+    : blob;
 }
