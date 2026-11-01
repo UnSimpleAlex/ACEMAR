@@ -128,3 +128,15 @@ test("rechaza actores sin privilegios y medios fuera del bucket permitido", asyn
     /Invalid WebP asset/,
   );
 });
+
+test("acepta la URL codificada y versionada que devuelve Storage", () => {
+  const encoded = assets.map((a) => ({
+    ...a,
+    url:
+      "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/" +
+      encodeURIComponent(a.key) +
+      "?v=" +
+      "a".repeat(32),
+  }));
+  assert.ok(catalogSeedSQL(products, encoded, actor).includes("%2F"));
+});
