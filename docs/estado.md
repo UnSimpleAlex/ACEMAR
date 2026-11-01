@@ -61,3 +61,7 @@ Las 12 ilustraciones se editan para retirar el fondo y se publican como WebP RGB
 ## Cobertura completa de imágenes y filtros (#13)
 
 Se completan miniaturas en lotes, formularios, unidades, carrito, venta/corrección, proformas y auditoría, además de sus exportaciones cuando contienen productos. La migración enriquece únicamente las respuestas autorizadas con la imagen actual del producto, conserva datos históricos y mantiene bloqueado el helper de auditoría. El PDF centra bloques por límites reales de glifos; el Excel incorpora filtros de encabezados y fórmulas del resumen basadas en filas visibles, preservando los gráficos nativos e iconos originales. Verificación local: 35 pruebas de interfaz/reportes, 14 de base de datos, tipos, lint y build. El recorrido autenticado y el comportamiento en Excel de escritorio requieren revisión del usuario.
+
+## Asistente Gemini (#15)
+
+Se conecta Gemini 3.5 Flash a través de una función de InsForge, con secreto exclusivo de servidor, contexto administrativo, cuotas atómicas y errores seguros. Se reemplaza el asistente de reglas locales. Se verificó una respuesta real de Google; la sesión administrativa del usuario debe completar la prueba del recorrido en la aplicación. Ver docs/asistente-ia.md.
