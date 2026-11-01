@@ -289,3 +289,49 @@ test("proforma no reserva stock y solo puede convertirse una vez", async () => {
     /Proforma no disponible/,
   );
 });
+
+test("lotes y documentos incorporan la imagen por unidad sin alterar el historial ni los permisos", async () => {
+  await user(admin);
+  const original = await call("acemar_detail", ["sales", sale.id]);
+  const historicalName = original.lines[0].product_name;
+  await db.exec("RESET ROLE");
+  const url =
+    "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/current.webp";
+  await db.query(
+    "INSERT INTO public.assets(product_id,object_key,url,mime,bytes,width,height,alt,generated,actor_id) VALUES($1,'current.webp',$2,'image/webp',100,640,640,'Ilustración',true,$3)",
+    [product, url, admin],
+  );
+  await db.query(
+    "UPDATE public.products SET name='Nombre actual distinto' WHERE id=$1",
+    [product],
+  );
+  await user(admin);
+  const lots = await call("acemar_list", ["lots", 0, ""]);
+  assert.equal(lots[0].image_url, url);
+  const detail = await call("acemar_detail", ["sales", sale.id]);
+  assert.equal(detail.lines[0].image_url, url);
+  assert.equal(detail.lines[0].product_id, product);
+  assert.equal(detail.lines[0].product_name, historicalName);
+  assert.equal(detail.lines[0].price, original.lines[0].price);
+  const q = await call("acemar_quotation", [
+    JSON.stringify([{ unit_id: unit, quantity: 1 }]),
+    "Prueba de imagen",
+  ]);
+  const quote = await call("acemar_detail", ["quotations", q]);
+  assert.equal(quote.lines[0].image_url, url);
+  await user(seller);
+  await assert.rejects(() => call("acemar_snapshot_images", [JSON.stringify({lines:[]})]), /permission denied/);
+  await assert.rejects(
+    () => call("acemar_detail", ["sales", sale.id]),
+    /autorizada/,
+  );
+  await assert.rejects(
+    () => call("acemar_detail", ["quotations", q]),
+    /autorizada/,
+  );
+  await assert.rejects(
+    () => call("acemar_list", ["lots", 0, ""]),
+    /autorizada/,
+  );
+  await user(admin);
+});
