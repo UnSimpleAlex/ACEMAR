@@ -108,12 +108,19 @@ export async function workbookBlob(
   });
   data.push(labels, values, blank(21));
   data.push(
-    merged("REPORTE DE CONTROL INTERNO", 0, count, {
-      fontFamily: "Bahnschrift",
-      fontSize: 9,
-      textColor: muted,
-      height: 14,
-    }),
+    merged(
+      options.products
+        ? "FILTRA DESDE LOS ENCABEZADOS: PRODUCTO / CÓDIGO · UNIDAD · ESTADO"
+        : "REPORTE DE CONTROL INTERNO",
+      0,
+      count,
+      {
+        fontFamily: "Bahnschrift",
+        fontSize: 9,
+        textColor: muted,
+        height: 14,
+      },
+    ),
   );
   data.push(
     merged(
@@ -144,7 +151,7 @@ export async function workbookBlob(
           value = c ? row[c.key] : "";
         const style: Partial<CellObject> = {
           backgroundColor: index % 2 ? "#F5F7FA" : "#FFFFFF",
-          height: options.products ? 58 : 32,
+          height: columns.some((c) => c.image) ? 58 : 32,
           wrap: true,
           bottomBorderColor: "#E5E9EF",
           bottomBorderStyle: "hair",
@@ -199,7 +206,7 @@ export async function workbookBlob(
       offsetY: 8,
       title: "ACEMAR",
     });
-  if (options.products)
+  if (columns.some((c) => c.image))
     rows.forEach((r, i) => {
       const image = options.assets?.images[String(r.id)];
       if (image)
@@ -209,27 +216,28 @@ export async function workbookBlob(
           width: 64,
           height: 64,
           dpi: 96,
-          anchor: { row: 13 + i, column: 1 },
+          anchor: {
+            row: 13 + i,
+            column: columns.findIndex((c) => c.image) + 1,
+          },
           offsetX: 4,
           offsetY: 6,
-          title: String(r.name),
+          title: String(r.name ?? r.product_name),
         });
     });
-  options.assets?.icons
-    ?.slice(0, 4)
-    .forEach((icon, i) =>
-      images.push({
-        content: new Blob([new Uint8Array(icon).buffer]),
-        contentType: "image/png",
-        width: 30,
-        height: 30,
-        dpi: 96,
-        anchor: { row: 8, column: i * 2 + 1 },
-        offsetX: 10,
-        offsetY: 4,
-        title: `Indicador ${metrics[i].label}`,
-      }),
-    );
+  options.assets?.icons?.slice(0, 4).forEach((icon, i) =>
+    images.push({
+      content: new Blob([new Uint8Array(icon).buffer]),
+      contentType: "image/png",
+      width: 30,
+      height: 30,
+      dpi: 96,
+      anchor: { row: 8, column: i * 2 + 1 },
+      offsetX: 10,
+      offsetY: 4,
+      title: `Indicador ${metrics[i].label}`,
+    }),
+  );
   if (options.assets?.icons?.[4])
     images.push({
       content: new Blob([new Uint8Array(options.assets.icons[4]).buffer]),
@@ -431,7 +439,7 @@ export async function workbookBlob(
         };
       });
     summary[35][1] = text(
-      options.scope ?? "Página visible con los filtros aplicados",
+      "Los indicadores y gráficos responden a los filtros de encabezados de la hoja principal.",
       { columnSpan: 7, rowSpan: 2, fontSize: 9, textColor: muted, wrap: true },
     );
     summary[38][1] = text(
@@ -469,21 +477,19 @@ export async function workbookBlob(
         offsetY: 5,
         title: "ACEMAR",
       });
-    options.assets?.icons
-      ?.slice(0, 4)
-      .forEach((icon, i) =>
-        summaryImages.push({
-          content: new Blob([new Uint8Array(icon).buffer]),
-          contentType: "image/png",
-          width: 30,
-          height: 30,
-          dpi: 96,
-          anchor: { row: 8, column: positions[i] + 1 },
-          offsetX: 10,
-          offsetY: 4,
-          title: `Indicador ${metrics[i].label}`,
-        }),
-      );
+    options.assets?.icons?.slice(0, 4).forEach((icon, i) =>
+      summaryImages.push({
+        content: new Blob([new Uint8Array(icon).buffer]),
+        contentType: "image/png",
+        width: 30,
+        height: 30,
+        dpi: 96,
+        anchor: { row: 8, column: positions[i] + 1 },
+        offsetX: 10,
+        offsetY: 4,
+        title: `Indicador ${metrics[i].label}`,
+      }),
+    );
     const rawColumns: ExportColumn[] = [
       { key: "code", label: "Código" },
       { key: "name", label: "Producto" },
@@ -550,7 +556,14 @@ export async function workbookBlob(
     fontFamily: "Consolas",
     fontSize: 10,
   }).toBlob();
-  return options.products
-    ? (await import("./inventory-charts")).inventoryCharts(blob, rows)
+  const withCharts = options.products
+    ? await (await import("./inventory-charts")).inventoryCharts(blob, rows)
     : blob;
+  return (await import("./inventory-filters")).inventoryFilters(
+    withCharts,
+    rows,
+    main.sheet!,
+    columns.length,
+    !!options.products,
+  );
 }
