@@ -65,3 +65,9 @@ Se completan miniaturas en lotes, formularios, unidades, carrito, venta/correcci
 ## Asistente Gemini (#15)
 
 Se conecta Gemini 3.5 Flash a través de una función de InsForge, con secreto exclusivo de servidor, contexto administrativo, cuotas atómicas y errores seguros. Se reemplaza el asistente de reglas locales. Se verificó una respuesta real de Google; la sesión administrativa del usuario debe completar la prueba del recorrido en la aplicación. Ver docs/asistente-ia.md.
+
+## Formularios, imágenes y acciones (#17)
+
+Crear/editar productos admite fotos con previsualización y recodificación WebP en servidor. Un fallo de foto permite reintentar sobre el producto ya guardado. Se añaden acciones explícitas y eliminación de productos sin historial; se conservan operaciones y auditoría. Se corrigen mensajes detrás del modal, campos durante guardado, duplicados, búsquedas al paginar, botones de exportación y edición de la unidad base. Ver docs/productos-imagenes.md. Pruebas locales: 39 de interfaz/reportes y 22 de backend, además de tipos, lint y build.
+
+Verificación remota de #17: cinco controles de carga/recodificación/lectura/catálogo/eliminación pasaron con cuenta, producto y objeto temporales; limpieza confirmada. No se usó ni se cambió la contraseña del propietario.
