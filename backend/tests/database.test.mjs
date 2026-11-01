@@ -320,7 +320,10 @@ test("lotes y documentos incorporan la imagen por unidad sin alterar el historia
   const quote = await call("acemar_detail", ["quotations", q]);
   assert.equal(quote.lines[0].image_url, url);
   await user(seller);
-  await assert.rejects(() => call("acemar_snapshot_images", [JSON.stringify({lines:[]})]), /permission denied/);
+  await assert.rejects(
+    () => call("acemar_snapshot_images", [JSON.stringify({ lines: [] })]),
+    /permission denied/,
+  );
   await assert.rejects(
     () => call("acemar_detail", ["sales", sale.id]),
     /autorizada/,
@@ -334,4 +337,24 @@ test("lotes y documentos incorporan la imagen por unidad sin alterar el historia
     /autorizada/,
   );
   await user(admin);
+});
+
+test("contexto IA exige administrador y aplica cuota atómica sin guardar preguntas", async () => {
+  await user(seller);
+  await assert.rejects(
+    () => call("acemar_assistant_context", []),
+    /autorizada/,
+  );
+  await user(admin);
+  for (let i = 0; i < 20; i++) {
+    const context = await call("acemar_assistant_context", []);
+    assert.ok(context.summary);
+    assert.ok(Array.isArray(context.low_stock_products));
+    assert.ok(context.low_stock_products.length <= 10);
+  }
+  await assert.rejects(() => call("acemar_assistant_context", []), /Límite/);
+  await assert.rejects(
+    () => db.query("SELECT * FROM public.assistant_usage"),
+    /permission denied/,
+  );
 });
