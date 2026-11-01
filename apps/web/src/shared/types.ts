@@ -40,6 +40,9 @@ export interface Sale {
   actor_id: string;
 }
 export interface SaleLine {
+  product_id?: string;
+  image_url?: string | null;
+  image_generated?: boolean | null;
   id: string;
   product_name: string;
   unit_name: string;
