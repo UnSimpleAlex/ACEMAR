@@ -159,7 +159,7 @@ export async function reportPDF(options: ReportPDFOptions) {
       lines.forEach((line, k) =>
         page.drawText(line, {
           x: x + 8,
-          y: y - 13 - k * 11,
+          y: y - (h - lines.length * 11) / 2 - 8 - k * 11,
           size: 8,
           font: bold,
           color: rgb(1, 1, 1),
@@ -227,7 +227,7 @@ export async function reportPDF(options: ReportPDFOptions) {
         } else
           page.drawText("Sin imagen", {
             x: x + 4,
-            y: y - 24,
+            y: y - heightNeeded / 2 - 2,
             size: 6,
             font,
             color: gray,
@@ -238,7 +238,7 @@ export async function reportPDF(options: ReportPDFOptions) {
             x: col.numeric
               ? x + widths[i] - 8 - font.widthOfTextAtSize(line, 9)
               : x + 8,
-            y: y - 17 - k * 12,
+            y: y - (heightNeeded - contents[i].length * 12) / 2 - 9 - k * 12,
             size: 9,
             font,
             color: navy,
