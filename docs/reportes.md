@@ -8,13 +8,13 @@ El acento rojo se reemplaza por azul #2855D9, con texto #18212F, grises claros y
 
 Los reportes contienen exclusivamente la página visible y sus filtros, declarados en el documento. No representan todo el catálogo cuando hay más páginas. Las miniaturas se incrustan como PNG para compatibilidad con Excel y PDF; los originales continúan alojados como WebP en InsForge. Una imagen no disponible se identifica y no impide exportar los datos.
 
-Indicadores: productos exportados, productos con existencias, productos con stock bajo o agotado y valor a precio de venta. Este último es la suma de stock × precio base con redondeo monetario, no el costo contable. No se suman cantidades de unidades incompatibles. El Resumen muestra disponibilidad y los cinco productos de mayor valor de venta. Los datos son una instantánea; no se copian los filtros interactivos ni fórmulas de categorías de la pollería.
+Indicadores: productos exportados, productos con existencias, productos con stock bajo o agotado y valor a precio de venta. Este último es la suma de stock × precio base con redondeo monetario, no el costo contable. No se suman cantidades de unidades incompatibles. El Resumen mantiene la distribución de 17 columnas del ejemplo e incluye dos gráficos nativos editables: barras de los cinco productos con mayor valor a precio de venta y dona de disponibilidad. Sus series apuntan a las celdas del Resumen. Los cuatro iconos de indicadores y el icono de búsqueda se extraen sin cambios del Excel de referencia; se utiliza la marca de ACEMAR. Los datos son una instantánea; no se copian los filtros interactivos ni fórmulas de categorías de la pollería.
 
 Los números se guardan como números, los códigos como texto. El texto que comienza con `=` no se transforma en fórmula. Se repite el encabezado fijo en pantalla y se selecciona orientación horizontal. La exportación de otros módulos reutiliza el encabezado y sus columnas correspondientes.
 
 ## PDF y documento imprimible
 
-El motor compartido produce A4, marca vectorial, acento azul, título, contexto, tabla, filas alternadas, importes alineados y pie con número de página. Repite cabecera en páginas nuevas, ajusta descripciones al ancho y evita cortes silenciosos: un registro excepcional que exceda la capacidad de una página se rechaza con un error.
+El motor compartido produce A4, marca vectorial, acento azul, título, contexto, tabla, filas alternadas, importes alineados y pie con número de página. Centra verticalmente encabezados, textos multilínea y avisos de imagen dentro de cada fila. Repite cabecera en páginas nuevas, ajusta descripciones al ancho y evita cortes silenciosos: un registro excepcional que exceda la capacidad de una página se rechaza con un error.
 
 Las ventas y proformas usan columnas de producto, unidad, cantidad, precio e importe, con un bloque final de totales. El total de venta se toma del servidor; no se sustituye por una estimación del cliente. Las proformas mantienen su condición de no reservar stock. El PDF de inventario y las fichas de producto incluyen miniaturas; los documentos de venta conservan el nombre histórico registrado en sus líneas, sin sustituirlo por el nombre actual de un producto.
 
@@ -26,7 +26,7 @@ Se incrustan variantes regular y negrita de DejaVu Sans, con subconjunto latino,
 
 Productos y Existencias muestran imagen, nombre y aviso de ilustración en sus tablas y tarjetas móviles. Se mantienen las imágenes de Vender y del detalle del producto. La recuperación de imágenes fallidas sigue ofreciendo una alternativa accesible.
 
-La conversión para exportar limita las solicitudes al bucket público de ACEMAR, omite credenciales y referente, aplica tiempo límite, verifica MIME y límites de tamaño/dimensiones y convierte a miniatura PNG. No habilita subidas del navegador ni modifica permisos del backend.
+La conversión para exportar limita las solicitudes al bucket público de ACEMAR, omite credenciales y referente, aplica tiempo límite, verifica MIME y límites de tamaño/dimensiones y convierte a miniatura PNG conservando el canal alfa. El fondo de las imágenes en pantalla se define mediante CSS (`--product-image-background`), independientemente del archivo. No habilita subidas del navegador ni modifica permisos del backend.
 
 ## Verificación
 

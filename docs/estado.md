@@ -1,6 +1,6 @@
 # Estado verificable
 
-Fecha: 31/10/2026. Referencia funcional WPF: e6a97dd535e109f8a7aa83eafec192a03cfed12d.
+Fecha: 01/11/2026. Referencia funcional WPF: e6a97dd535e109f8a7aa83eafec192a03cfed12d.
 
 ## Alcance
 
@@ -23,7 +23,7 @@ Exportaciones: XLSX de la página visible y PDF descargable de ventas/proformas,
 
 ## Comprobaciones actualizadas
 
-- 28 pruebas de interfaz, importes, recuperación, cierre de sesión y archivos reales (Vitest): correctas.
+- 30 pruebas de interfaz, importes, recuperación, cierre de sesión y archivos reales (Vitest): correctas.
 - 13 pruebas de PostgreSQL aislado (PGlite): correctas.
 - 9 comprobaciones autenticadas contra InsForge real: correctas, incluida venta concurrente de la última unidad, reintento, autorización y restitución de lote.
 - Cuentas y datos de prueba eliminados; se comprobaron cero perfiles, productos, ventas y lotes en el backend al terminar.
@@ -52,4 +52,8 @@ No se importaron ventas, pagos, deudas ni usuarios de prueba del WPF. Las catego
 
 Productos y Existencias incorporan miniaturas en los listados y tarjetas móviles. Exportar Excel adapta las tipografías y la distribución del archivo de referencia: marca ACEMAR, azul, indicadores, tabla y hojas principal/Resumen/Datos. Las imágenes se incrustan en el documento. Exportar PDF añade inventario con miniaturas, fichas y tablas A4 con marca, fuentes libres incrustadas y paginación. El PDF descargado se imprime desde su visor; no imprime los controles de la interfaz.
 
-Los reportes siguen limitados a la página visible y sus filtros. El valor mostrado es a precio de venta y no costo contable. Validación: 28 pruebas locales, tipos, lint y compilación; revisión visual de las tres hojas y de PDF paginados. El audit mantiene las mismas tres entradas de la cadena del SDK, sin hallazgo nuevo para fontkit. Ver docs/reportes.md.
+Los reportes siguen limitados a la página visible y sus filtros. El valor mostrado es a precio de venta y no costo contable. Validación: 30 pruebas locales, tipos, lint y compilación; revisión visual de las tres hojas y de PDF paginados. El audit mantiene las mismas tres entradas de la cadena del SDK, sin hallazgo nuevo para fontkit. Ver docs/reportes.md.
+
+## Afinado visual (#11)
+
+Las 12 ilustraciones se editan para retirar el fondo y se publican como WebP RGBA 640 × 640 (524.308 bytes en conjunto); el fondo lo controla CSS. Se preserva transparencia en las miniaturas exportadas. Se conservan los objetos anteriores y las nuevas asociaciones no modifican precios ni stock. El PDF centra verticalmente encabezados y contenido. El Excel recupera los iconos originales y dos gráficos nativos editables (barras y dona), con series vinculadas al Resumen y datos reales de la página exportada. Verificación: 30 pruebas, tipos, lint, compilación, lectura independiente de ambos gráficos y revisión visual de las hojas y PDF.

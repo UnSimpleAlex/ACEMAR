@@ -44,7 +44,7 @@ Se utilizó la herramienta integrada ImageGen, una imagen independiente por prod
 | BRO-018 | one three-inch paintbrush with natural bristles and wooden handle                                                                                                         |
 | CAN-019 | one brass 50mm padlock with closed steel shackle                                                                                                                          |
 
-El ladrillo se selecciona desde una cara sin perforaciones expuestas para no atribuir un conteo incorrecto a la ilustración. Conversión con Pillow: RGB, 640 × 640, remuestreo Lanczos, WebP calidad 82 y método 6, sin metadatos copiados. El nombre del objeto incorpora 12 caracteres de su SHA-256 para versionar el contenido. El POS conserva `Ilustración del producto`, carga diferida, dimensiones reservadas y recuperación ante errores de imagen.
+El ladrillo se selecciona desde una cara sin perforaciones expuestas para no atribuir un conteo incorrecto a la ilustración. Posteriormente se retira el fondo mediante edición con ImageGen conservando el producto y solicitando transparencia real, sin plano de suelo ni sombra proyectada. Conversión con Pillow: RGBA, 640 × 640, remuestreo Lanczos, WebP calidad 85 y método 6, conservando alfa y sin metadatos copiados. Se verifican píxeles transparentes y opacos antes de publicar. El fondo visual se aplica en CSS. Las versiones anteriores de Storage se conservan; se asocian las nuevas imágenes sin cambiar existencias ni precios. El nombre del objeto incorpora 12 caracteres de su SHA-256 para versionar el contenido. El POS conserva `Ilustración del producto`, carga diferida, dimensiones reservadas y recuperación ante errores de imagen.
 
 ## Validación
 
