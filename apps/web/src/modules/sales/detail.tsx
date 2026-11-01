@@ -34,6 +34,19 @@ export default function Detail() {
       price: Number(l.price),
     })),
   );
+  async function exportPDF() {
+    setError("");
+    try {
+      const { salePDF, download } = await import("../../shared/documents");
+      const bytes = await salePDF({ sale, lines });
+      download(
+        new Blob([new Uint8Array(bytes).buffer], { type: "application/pdf" }),
+        `ACEMAR-venta-${sale.number}.pdf`,
+      );
+    } catch {
+      setError("No se pudo generar el documento. Reintenta.");
+    }
+  }
   async function change() {
     setBusy(true);
     setError("");
@@ -76,11 +89,12 @@ export default function Detail() {
           </h1>
           <p>{date(sale.created_at)}</p>
         </div>
-        <Button variant="secondary" onClick={() => window.print()}>
+        <Button variant="secondary" onClick={() => void exportPDF()}>
           <Printer size={18} />
-          Imprimir / Guardar PDF
+          Descargar PDF
         </Button>
       </div>
+      {error && !mode && <ErrorState error={new Error(error)} />}
       <section className="panel receipt">
         <div className="receipt-header">
           <div className="brand">

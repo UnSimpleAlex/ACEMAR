@@ -142,29 +142,29 @@ export default function Management() {
       setBusy(false);
     }
   }
-  function exportCSV() {
-    const rows = data.data ?? [];
-    const escape = (v: unknown) =>
-      '"' +
-      String(v ?? "")
-        .replace(/^[=+\-@]/, "'$&")
-        .replaceAll('"', '""') +
-      '"';
-    const csv = [
-      config.columns.map((c) => escape(c[1])).join(","),
-      ...rows.map((r) =>
-        config.columns.map((c) => escape(format(r[c[0]], c[2]))).join(","),
-      ),
-    ].join("\r\n");
-    const url = URL.createObjectURL(
-      new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }),
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `acemar-${module}-pagina-${page + 1}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setNotice("Se exportó la página visible con sus filtros.");
+  async function exportExcel() {
+    setBusy(true);
+    setError("");
+    try {
+      const { workbookBlob } = await import("../../shared/spreadsheets");
+      const { download } = await import("../../shared/download");
+      const blob = await workbookBlob(
+        config.columns.map(([key, label, type]) => ({
+          key,
+          label,
+          numeric: type === "number" || type === "money",
+          currency: type === "money",
+        })),
+        data.data ?? [],
+        config.title,
+      );
+      download(blob, `acemar-${module}-pagina-${page + 1}.xlsx`);
+      setNotice("Se exportó la página visible con sus filtros a Excel.");
+    } catch {
+      setError("No se pudo generar el archivo Excel. Reintenta.");
+    } finally {
+      setBusy(false);
+    }
   }
   return (
     <>
@@ -179,11 +179,11 @@ export default function Management() {
         <div className="heading-actions">
           <Button
             variant="secondary"
-            disabled={!data.data?.length}
-            onClick={exportCSV}
+            disabled={busy || !data.data?.length}
+            onClick={() => void exportExcel()}
           >
             <Download size={17} />
-            Exportar CSV
+            Exportar Excel
           </Button>
           {config.create && (
             <Button onClick={() => setEditing(null)}>

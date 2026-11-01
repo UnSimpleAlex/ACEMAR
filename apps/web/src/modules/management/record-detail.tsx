@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { rpc } from "../../shared/backend";
 import type { Row, SaleLine } from "../../shared/types";
@@ -97,12 +98,43 @@ export function RecordDetail({
   row: Row;
   onClose: () => void;
 }) {
+  const [exportError, setExportError] = useState("");
+  const [exportBusy, setExportBusy] = useState(false);
   const detail = useQuery({
     queryKey: ["detail", entity, row.id],
     queryFn: () =>
       rpc<Detail>("acemar_detail", { p_entity: entity, p_id: row.id }),
     enabled: ["customers", "quotations"].includes(entity),
   });
+  async function exportQuote() {
+    if (!detail.data?.lines) return;
+    setExportBusy(true);
+    setExportError("");
+    try {
+      const { documentPDF, download } = await import("../../shared/documents");
+      const lines = detail.data.lines;
+      const bytes = await documentPDF(
+        `Proforma N. ${row.number}`,
+        `${String(row.customer_name || "Cliente sin especificar")} | ${date(row.created_at)}`,
+        [
+          ...lines.map((l) => ({
+            label: `${l.quantity} ${l.unit_name} - ${l.product_name}`,
+            amount: money(Number(l.quantity) * Number(l.price)),
+          })),
+          { label: "TOTAL COTIZADO", amount: money(row.total) },
+        ],
+        "No reserva existencias. Precios y disponibilidad sujetos a revision al vender.",
+      );
+      download(
+        new Blob([new Uint8Array(bytes).buffer], { type: "application/pdf" }),
+        `ACEMAR-proforma-${row.number}.pdf`,
+      );
+    } catch {
+      setExportError("No se pudo generar el PDF. Reintenta.");
+    } finally {
+      setExportBusy(false);
+    }
+  }
   const units = Array.isArray(row.units)
     ? (row.units as { id: string; name: string; factor: number }[])
     : [];
@@ -197,9 +229,20 @@ export function RecordDetail({
           <Snapshot value={row.after_data} />
         </>
       )}
+      {exportError && <ErrorState error={new Error(exportError)} />}
       <div className="form-actions">
-        <Button variant="secondary" onClick={() => window.print()}>
-          Imprimir / Guardar PDF
+        <Button
+          variant="secondary"
+          disabled={exportBusy}
+          onClick={() =>
+            entity === "quotations" ? void exportQuote() : window.print()
+          }
+        >
+          {entity === "quotations"
+            ? exportBusy
+              ? "Generando…"
+              : "Descargar PDF"
+            : "Imprimir / Guardar PDF"}
         </Button>
         <Button onClick={onClose}>Cerrar</Button>
       </div>
