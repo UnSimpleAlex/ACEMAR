@@ -2,6 +2,25 @@ const uuid =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const prefix =
   "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/";
+function assetURLMatches(url, key) {
+  try {
+    const parsed = new URL(url);
+    const base = new URL(prefix);
+    return (
+      parsed.origin === base.origin &&
+      !parsed.username &&
+      !parsed.password &&
+      !parsed.hash &&
+      parsed.pathname.startsWith(base.pathname) &&
+      decodeURIComponent(parsed.pathname.slice(base.pathname.length)) === key &&
+      [...parsed.searchParams].every(
+        ([name, value]) => name === "v" && /^[a-f0-9]{32}$/.test(value),
+      )
+    );
+  } catch {
+    return false;
+  }
+}
 const literal = (value) => "'" + value.replaceAll("'", "''") + "'";
 
 /** One transaction; reruns never refill consumed stock or change existing prices. */
@@ -33,7 +52,7 @@ export function catalogSeedSQL(products, assets, actor) {
       !/^products\/evaluation\/v1\/[A-Z]{3}-\d{3}-[a-f0-9]{12}\.webp$/.test(
         a.key,
       ) ||
-      a.url !== prefix + a.key ||
+      !assetURLMatches(a.url, a.key) ||
       a.bytes < 1 ||
       a.bytes > 2097152 ||
       !Number.isInteger(a.bytes) ||
