@@ -130,3 +130,31 @@ it("incrusta los iconos originales en indicadores y búsqueda", async () => {
   expect(drawings).toContain("Búsqueda aplicada");
   expect(drawings).toContain("rId-acemar-bar");
 });
+it("filtros nativos conservan fotos en su fila y conectan indicadores y gráficos a filas visibles", async () => {
+  const blob = await workbookBlob(productColumns, rows, "Productos", {
+    products: true,
+    assets: { images: { p1: png }, missing: 0 },
+  });
+  const zip = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+  const main = strFromU8(zip["xl/worksheets/sheet1.xml"]);
+  const raw = strFromU8(zip["xl/worksheets/sheet3.xml"]);
+  const summary = strFromU8(zip["xl/worksheets/sheet2.xml"]);
+  expect(main).toContain('<autoFilter ref="A12:H14"/>');
+  expect(raw).toContain(
+    "SUBTOTAL(103,&apos;Productos&apos;!B13)".replaceAll("&apos;", "'"),
+  );
+  expect(raw).toContain(
+    "SUMPRODUCT($I$2:$I$3,--($H$2:$H$3&gt;H2))+COUNTIFS($H$2:H2,H2,$I$2:I2,1)",
+  );
+  for (const formula of raw.matchAll(/<f>([\s\S]*?)<\/f>/g))
+    expect(formula[1]).not.toContain("<c ");
+  expect(summary).toContain("COUNTIFS(Datos!$I$2:$I$3,1,Datos!$G$2:$G$3");
+  expect(summary).toContain(
+    "INDEX(Datos!$B$2:$B$3,MATCH(1,Datos!$J$2:$J$3,0))",
+  );
+  expect(strFromU8(zip["xl/drawings/drawing1.xml"])).toContain(
+    '<xdr:twoCellAnchor editAs="twoCell">',
+  );
+  expect(zip["xl/charts/acemar-bar.xml"]).toBeDefined();
+  expect(zip["xl/charts/acemar-donut.xml"]).toBeDefined();
+});
