@@ -56,7 +56,7 @@ it("el inventario conserva tres hojas, tipografías, ubicación y fotos incrusta
   expect(sheet).toContain('r="A12"');
   expect(
     Object.keys(zip).filter((key) => key.startsWith("xl/media/")).length,
-  ).toBe(2);
+  ).toBe(3);
   expect(strFromU8(zip["xl/sharedStrings.xml"])).toContain("Sin imagen");
 });
 it("calcula valor monetario sin sumar unidades distintas y mantiene los estados de stock", () => {
@@ -92,4 +92,41 @@ it("PDF informa un registro imposible de paginar en vez de cortarlo silenciosame
       rows: [{ name: "Descripción extensa ".repeat(4000) }],
     }),
   ).rejects.toThrow(/demasiado extenso/);
+});
+
+it("conserva gráficos nativos vinculados al resumen incluso sin imágenes", async () => {
+  const blob = await workbookBlob(productColumns, rows, "Productos", {
+    products: true,
+  });
+  const zip = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+  const bar = strFromU8(zip["xl/charts/acemar-bar.xml"]),
+    donut = strFromU8(zip["xl/charts/acemar-donut.xml"]);
+  expect(bar).toContain("<c:barChart>");
+  expect(donut).toContain("<c:doughnutChart>");
+  expect(bar).toContain("Resumen!$B$28:$B$29");
+  expect(bar).toContain("97.5");
+  expect(donut).toContain("Resumen!$E$14:$E$16");
+  expect(donut).toContain("Agotado");
+  expect(strFromU8(zip["xl/worksheets/_rels/sheet2.xml.rels"])).toContain(
+    "acemar-summary.xml",
+  );
+});
+it("incrusta los iconos originales en indicadores y búsqueda", async () => {
+  const blob = await workbookBlob(productColumns, rows, "Productos", {
+    products: true,
+    assets: {
+      logo: png,
+      images: { p1: png },
+      icons: [png, png, png, png, png],
+      missing: 0,
+    },
+  });
+  const zip = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+  const drawings = Object.entries(zip)
+    .filter(([key]) => /^xl\/drawings\/[^/]+\.xml$/.test(key))
+    .map(([, value]) => strFromU8(value))
+    .join("");
+  expect(drawings).toContain("Indicador PRODUCTOS EXPORTADOS");
+  expect(drawings).toContain("Búsqueda aplicada");
+  expect(drawings).toContain("rId-acemar-bar");
 });
