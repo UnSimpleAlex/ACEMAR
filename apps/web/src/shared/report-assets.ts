@@ -1,5 +1,6 @@
 export interface ReportAssets {
   logo?: Uint8Array;
+  icons?: Uint8Array[];
   images: Record<string, Uint8Array>;
   missing: number;
 }
@@ -41,6 +42,16 @@ export async function reportAssets(
     logo: await blobBytes(canvas),
     images: {},
     missing: 0,
+    icons: await Promise.all(
+      ["inventory", "available", "stock", "value", "search"].map(
+        async (name) => {
+          const response = await fetch(`/report-icons/${name}.png`);
+          if (!response.ok)
+            throw new Error("No se pudo cargar un icono del reporte");
+          return new Uint8Array(await response.arrayBuffer());
+        },
+      ),
+    ),
   };
   const queue = rows
     .filter((r) => typeof r.image_url === "string" && r.image_url)
@@ -80,8 +91,7 @@ export async function reportAssets(
             c.height = 112;
             const context = c.getContext("2d");
             if (!context) throw new Error();
-            context.fillStyle = "white";
-            context.fillRect(0, 0, 112, 112);
+            context.clearRect(0, 0, 112, 112);
             const scale = Math.min(112 / image.width, 112 / image.height);
             context.drawImage(
               image,
