@@ -1,3 +1,4 @@
+import { ProductImage } from "../../shared/components/product-image";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -6,7 +7,6 @@ import {
   Minus,
   Trash2,
   ShoppingCart,
-  Package,
   CheckCircle2,
   ArrowRight,
   FileText,
@@ -33,19 +33,7 @@ function ProductCard({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
   return (
     <article className="product-card">
-      <div className="product-image">
-        {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            loading="lazy"
-            width="240"
-            height="160"
-          />
-        ) : (
-          <Package size={52} strokeWidth={1.3} />
-        )}
-      </div>
+      <ProductImage src={product.image_url} name={product.name} />
       <div className="product-body">
         <h3>{product.name}</h3>
         <small>{product.code}</small>
