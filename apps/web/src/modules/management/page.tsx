@@ -165,13 +165,20 @@ export default function Management() {
           }));
       const columns = products
         ? productColumns
-        : config.columns.map(([key, label, type]) => ({
-            key,
-            label,
-            numeric: type === "number" || type === "money",
-            currency: type === "money",
-          }));
-      const assets = await reportAssets(products ? rows : []);
+        : [
+            ...(config.entity === "lots"
+              ? [{ key: "image_url", label: "Foto", image: true }]
+              : []),
+            ...config.columns.map(([key, label, type]) => ({
+              key,
+              label,
+              numeric: type === "number" || type === "money",
+              currency: type === "money",
+            })),
+          ];
+      const assets = await reportAssets(
+        products || config.entity === "lots" ? rows : [],
+      );
       const scope = `Página ${page + 1}. ${rows.length} registros. Búsqueda: ${params.get("q") || "sin filtro"}.`;
       let blob: Blob;
       if (format === "xlsx") {
@@ -326,7 +333,9 @@ export default function Management() {
                   <tr key={row.id}>
                     {config.columns.map((c) => (
                       <td data-label={c[1]} key={c[0]}>
-                        {c[0] === "name" && config.entity === "products" ? (
+                        {(c[0] === "name" && config.entity === "products") ||
+                        (c[0] === "product_name" &&
+                          config.entity === "lots") ? (
                           <div className="product-list-identity">
                             <ProductImage
                               src={
@@ -334,7 +343,7 @@ export default function Management() {
                                   ? row.image_url
                                   : null
                               }
-                              name={String(row.name)}
+                              name={String(row.name ?? row.product_name)}
                             />
                             <div>
                               <strong>{String(row[c[0]])}</strong>
@@ -663,6 +672,7 @@ function Units({
         if (!busy) onClose();
       }}
     >
+      <ProductImage src={product.image_url} name={product.name} />
       <p>
         Cada factor expresa cuántas unidades base ({product.base_unit}) contiene
         una presentación.
