@@ -1,3 +1,4 @@
+import { randomUUID } from "../../shared/uuid";
 import { RecordDetail } from "./record-detail";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -490,7 +491,7 @@ function Abono({
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [key] = useState(() => crypto.randomUUID());
+  const [key] = useState(() => randomUUID());
   async function submit() {
     setBusy(true);
     try {
