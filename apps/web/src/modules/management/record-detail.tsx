@@ -82,6 +82,11 @@ function Snapshot({ value }: { value: unknown }) {
       {v.lines?.map((l) => (
         <div className="unit-row" key={l.id}>
           <span>
+            <ProductImage
+              compact
+              src={l.image_url ?? null}
+              name={l.product_name}
+            />{" "}
             {l.product_name} · {quantity(l.quantity)} {l.unit_name}
           </span>
           <strong>{money(l.subtotal)}</strong>
@@ -118,7 +123,7 @@ export function RecordDetail({
         await import("../../shared/report-data");
       const product = entity === "products";
       const quotation = entity === "quotations";
-      const rows = product
+      const rows: Record<string, unknown>[] = product
         ? productReportRows([row])
         : quotation
           ? (detail.data?.lines ?? []).map((l) => ({
@@ -141,11 +146,14 @@ export function RecordDetail({
                 value: money(s.total),
               })),
             ];
-      const assets = await reportAssets(product ? [row] : []);
+      const assets = await reportAssets(
+        product ? [row] : quotation ? rows : entity === "lots" ? [row] : [],
+      );
       const columns = product
         ? productColumns
         : quotation
           ? [
+              { key: "image_url", label: "FOTO", image: true },
               { key: "product_name", label: "PRODUCTO" },
               { key: "unit_name", label: "UNIDAD" },
               { key: "quantity", label: "CANTIDAD", numeric: true },
@@ -166,6 +174,18 @@ export function RecordDetail({
               { key: "label", label: "CAMPO" },
               { key: "value", label: "INFORMACIÓN" },
             ];
+      if (entity === "lots") {
+        rows.splice(0, rows.length, { ...row });
+        columns.splice(
+          0,
+          columns.length,
+          { key: "image_url", label: "FOTO", image: true },
+          { key: "product_name", label: "PRODUCTO" },
+          { key: "supplier_name", label: "PROVEEDOR" },
+          { key: "available", label: "DISPONIBLE", numeric: true },
+          { key: "cost", label: "COSTO", numeric: true, currency: true },
+        );
+      }
       const bytes = await reportPDF({
         title: quotation
           ? `Proforma N. ${row.number}`
@@ -208,11 +228,11 @@ export function RecordDetail({
       }
       onClose={onClose}
     >
-      {entity === "products" && (
+      {["products", "lots"].includes(entity) && (
         <div className="mb-6">
           <ProductImage
             src={typeof row.image_url === "string" ? row.image_url : null}
-            name={String(row.name)}
+            name={String(row.name ?? row.product_name)}
           />
           {row.image_generated === true && (
             <small>Ilustración del producto</small>
@@ -250,6 +270,11 @@ export function RecordDetail({
           {detail.data.lines.map((l, i) => (
             <div className="unit-row" key={l.id ?? i}>
               <span>
+                <ProductImage
+                  compact
+                  src={l.image_url ?? null}
+                  name={l.product_name}
+                />
                 {l.product_name}
                 <small className="block">
                   {quantity(l.quantity)} {l.unit_name} × {money(l.price)}
