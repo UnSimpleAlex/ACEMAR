@@ -1,3 +1,4 @@
+import { ProductImage } from "../../shared/components/product-image";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { rpc } from "../../shared/backend";
@@ -147,6 +148,17 @@ export function RecordDetail({
       }
       onClose={onClose}
     >
+      {entity === "products" && (
+        <div className="mb-6">
+          <ProductImage
+            src={typeof row.image_url === "string" ? row.image_url : null}
+            name={String(row.name)}
+          />
+          {row.image_generated === true && (
+            <small>Ilustración del producto</small>
+          )}
+        </div>
+      )}
       <dl className="detail-list">
         {Object.entries(row)
           .filter(([key]) => names[key])
