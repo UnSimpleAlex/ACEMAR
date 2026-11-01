@@ -1,3 +1,4 @@
+import { ProductImage } from "../../shared/components/product-image";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useForm, type FieldValues } from "react-hook-form";
@@ -75,6 +76,12 @@ export function EntityForm({
       }}
     >
       <form onSubmit={form.handleSubmit(submit)} noValidate>
+        {row && config.entity === "products" && (
+          <ProductImage
+            src={typeof row.image_url === "string" ? row.image_url : null}
+            name={String(row.name)}
+          />
+        )}
         {config.entity === "lots" && (
           <>
             <label htmlFor="lookup">Buscar producto o proveedor</label>
@@ -172,6 +179,10 @@ export function EntityForm({
         </div>
         {selected && (
           <div className="notice">
+            <div className="product-list-identity">
+              <ProductImage src={selected.image_url} name={selected.name} />
+              <strong>{selected.name}</strong>
+            </div>
             Existencia actual: {selected.stock} {selected.base_unit}. El ingreso
             se sumará al registrar.
           </div>
