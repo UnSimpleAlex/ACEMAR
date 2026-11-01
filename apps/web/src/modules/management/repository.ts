@@ -11,4 +11,10 @@ export const catalog = (search: string, page: number) =>
 export const save = (entity: string, data: Record<string, unknown>) =>
   rpc<string>("acemar_save", { p_entity: entity, p_data: data });
 export const action = (entity: string, id: string, action: string) =>
-  rpc<void>("acemar_action", { p_entity: entity, p_id: id, p_action: action });
+  entity === "products" && action === "delete"
+    ? rpc<void>("acemar_delete_product", { p_id: id })
+    : rpc<void>("acemar_action", {
+        p_entity: entity,
+        p_id: id,
+        p_action: action,
+      });

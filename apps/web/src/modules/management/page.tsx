@@ -57,7 +57,10 @@ export default function Management() {
   const cache = useQueryClient();
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(params.get("q") ?? "");
-  const page = Math.max(0, Number(params.get("page")) || 0);
+  const page = Math.min(
+    10000,
+    Math.max(0, Math.floor(Number(params.get("page"))) || 0),
+  );
   const [editing, setEditing] = useState<Row | null | undefined>();
   const [selected, setSelected] = useState<Row | null>(null);
   const [confirm, setConfirm] = useState<{ row: Row; action: string } | null>(
@@ -96,6 +99,10 @@ export default function Management() {
     );
   function filter() {
     setParams({ q: search, page: "0" });
+  }
+  function confirmDelete(row: Row) {
+    setError("");
+    setConfirm({ row, action: "delete" });
   }
   async function runAction() {
     if (!confirm) return;
@@ -267,7 +274,7 @@ export default function Management() {
           {notice}
         </div>
       )}
-      {error && <ErrorState error={new Error(error)} />}
+      {error && !confirm && <ErrorState error={new Error(error)} />}
       <section className="panel">
         <form
           className="list-toolbar"
@@ -382,7 +389,7 @@ export default function Management() {
                             aria-label={`Editar ${String(row.name)}`}
                             onClick={() => setEditing(row)}
                           >
-                            <Pencil size={17} />
+                            <Pencil size={17} /> Editar
                           </Button>
                         )}
                         {module === "productos" && (
@@ -416,15 +423,15 @@ export default function Management() {
                               Cerrar
                             </Button>
                           )}
-                        {["proveedores", "creditos"].includes(module) && (
+                        {["productos", "proveedores", "creditos"].includes(
+                          module,
+                        ) && (
                           <Button
                             variant="ghost"
                             aria-label="Eliminar registro"
-                            onClick={() =>
-                              setConfirm({ row, action: "delete" })
-                            }
+                            onClick={() => confirmDelete(row)}
                           >
-                            <Trash2 size={17} />
+                            <Trash2 size={17} /> Eliminar
                           </Button>
                         )}
                         {module === "proformas" && row.state === "open" && (
@@ -459,7 +466,9 @@ export default function Management() {
           <Button
             variant="secondary"
             disabled={page === 0}
-            onClick={() => setParams({ q: search, page: String(page - 1) })}
+            onClick={() =>
+              setParams({ q: params.get("q") ?? "", page: String(page - 1) })
+            }
           >
             Anterior
           </Button>
@@ -470,7 +479,9 @@ export default function Management() {
               (data.data?.length ?? 0) <
               (config.entity === "products" ? 24 : 25)
             }
-            onClick={() => setParams({ q: search, page: String(page + 1) })}
+            onClick={() =>
+              setParams({ q: params.get("q") ?? "", page: String(page + 1) })
+            }
           >
             Siguiente
           </Button>
@@ -480,6 +491,15 @@ export default function Management() {
         <EntityForm
           config={config}
           row={editing ?? undefined}
+          onDelete={
+            editing &&
+            ["products", "suppliers", "customers"].includes(config.entity)
+              ? () => {
+                  setEditing(undefined);
+                  confirmDelete(editing);
+                }
+              : undefined
+          }
           onClose={() => setEditing(undefined)}
           onSaved={() => {
             setEditing(undefined);
@@ -516,11 +536,15 @@ export default function Management() {
                 `N.º ${confirm.row.number}`,
             )}
           </p>
+          {error && <ErrorState error={new Error(error)} />}
           <div className="form-actions">
             <Button
               variant="secondary"
               disabled={busy}
-              onClick={() => setConfirm(null)}
+              onClick={() => {
+                setConfirm(null);
+                setError("");
+              }}
             >
               Cancelar
             </Button>
@@ -529,7 +553,11 @@ export default function Management() {
               disabled={busy}
               onClick={() => void runAction()}
             >
-              {busy ? "Procesando…" : "Confirmar"}
+              {busy
+                ? "Procesando…"
+                : confirm.action === "delete"
+                  ? "Eliminar registro"
+                  : "Confirmar"}
             </Button>
           </div>
         </Modal>
@@ -683,16 +711,20 @@ function Units({
           <span>
             {u.name} = {quantity(u.factor)} {product.base_unit}
           </span>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setUnit(u);
-              setName(u.name);
-              setFactor(String(u.factor));
-            }}
-          >
-            Editar
-          </Button>
+          {u.name === product.base_unit ? (
+            <small>Unidad base fija</small>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setUnit(u);
+                setName(u.name);
+                setFactor(String(u.factor));
+              }}
+            >
+              Editar
+            </Button>
+          )}
         </div>
       ))}
       <h3>{unit ? "Editar presentación" : "Nueva presentación"}</h3>
