@@ -4,35 +4,38 @@ Fecha: 31/10/2026. Referencia funcional WPF: e6a97dd535e109f8a7aa83eafec192a03cf
 
 ## Alcance
 
-| Pantallas | Implementación | Verificación pendiente |
-|---|---|---|
-| Acceso | SDK, campos, validación, mostrar clave, perfil autorizado | Cuenta real, sesión, recuperación |
-| Resumen / Caja | RPC, período, totales y arqueo | Recorrido autenticado y conciliación operativa |
-| POS / Cobro / Error / Confirmación | Carrito, unidades, contado/crédito, RPC atómico | Concurrencia real y prueba completa remota |
-| Productos / Formulario / Unidades | Crear, editar, factores históricos independientes | Precios masivos y carga de imagen |
-| Lotes / Formulario | Entrada atómica, proveedor, stock, cierre de agotados | Navegador remoto |
-| Existencias | Catálogo paginado, consulta y mínimos | Filtro por estado |
-| Proveedores / Formulario | Crear, editar, borrar sin dependencias | Navegador remoto |
-| Créditos / Cliente / Abono | Crédito autorizado, límite, saldo, abono idempotente | Navegador remoto y pruebas concurrentes |
-| Ventas / Corrección / Auditoría | Consulta, revisión, factor histórico, motivo y anulación | Navegador remoto; visualización más detallada de eventos no financieros |
-| Proformas | Guardar, detalle, anular, cargar y vincular venta | Prueba remota de conversión y cambios de precio |
-| Usuarios / Formulario | Asociar y editar perfil de vendedor existente | Creación de identidad y gestión de credenciales desde app |
-| Asistente | Reglas locales con indicadores actuales | Servicio externo Gemini sin configurar |
+| Pantallas                          | Implementación                                           | Verificación pendiente                                                                       |
+| ---------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Acceso                             | SDK, campos, perfil autorizado y recuperación por código | Primera cuenta real y entrega del correo                                                     |
+| Resumen / Caja                     | RPC, período, totales y arqueo                           | Recorrido autenticado y conciliación operativa                                               |
+| POS / Cobro / Error / Confirmación | Carrito, unidades, contado/crédito, RPC atómico          | Recorrido completo en navegador autenticado; concurrencia remota de última unidad ya probada |
+| Productos / Formulario / Unidades  | Crear, editar, factores históricos independientes        | Precios masivos y carga de imagen                                                            |
+| Lotes / Formulario                 | Entrada atómica, proveedor, stock, cierre de agotados    | Navegador remoto                                                                             |
+| Existencias                        | Catálogo paginado, consulta y mínimos                    | Filtro por estado                                                                            |
+| Proveedores / Formulario           | Crear, editar, borrar sin dependencias                   | Navegador remoto                                                                             |
+| Créditos / Cliente / Abono         | Crédito autorizado, límite, saldo, abono idempotente     | Navegador remoto y pruebas concurrentes                                                      |
+| Ventas / Corrección / Auditoría    | Consulta, revisión, factor histórico, motivo y anulación | Navegador remoto; visualización más detallada de eventos no financieros                      |
+| Proformas                          | Guardar, detalle, anular, cargar y vincular venta        | Prueba remota de conversión y cambios de precio                                              |
+| Usuarios / Formulario              | Asociar y editar perfil de vendedor existente            | Creación de identidad y gestión de credenciales desde app                                    |
+| Asistente                          | Reglas locales con indicadores actuales                  | Servicio externo Gemini sin configurar                                                       |
 
-Exportaciones: CSV de página visible y PDF mediante impresión del navegador. No equivalen a XLSX o generación PDF del servidor. Caja es resumen, no una sesión completa. No SUNAT ni pasarelas.
+Exportaciones: XLSX de la página visible y PDF descargable de ventas/proformas, generados en navegador. No equivalen a generación/persistencia de documentos en servidor. Caja es resumen, no una sesión completa. No SUNAT ni pasarelas.
 
-## Comprobaciones
+## Comprobaciones actualizadas
 
-- 9 pruebas de PostgreSQL aislado con PGlite: inicialmente correctas; se repiten después de cada cambio relevante.
-- 7 pruebas de interfaz e importes con Vitest: correctas.
-- Compilación, tipos y lint ejecutados; ver informe de entrega/PR para resultado final.
-- Pantalla de acceso observada en navegador real. No se han observado todas las pantallas autenticadas ni las tres dimensiones.
-- Migraciones aplicadas a acemar-dev; tablas inicialmente vacías.
-- Generación de ilustración y conversión WebP; subida y metadatos confirmados.
-- npm audit identifica 3 entradas altas derivadas de un único aviso transitivo en Zod del SDK. No ignorado ni suprimido.
+- 12 pruebas de interfaz, importes, recuperación y archivos reales (Vitest): correctas.
+- 9 pruebas de PostgreSQL aislado (PGlite): correctas.
+- 9 comprobaciones autenticadas contra InsForge real: correctas, incluida venta concurrente de la última unidad, reintento, autorización y restitución de lote.
+- Cuentas y datos de prueba eliminados; se comprobaron cero perfiles, productos, ventas y lotes en el backend al terminar.
+- Las 3 pruebas de acceso responsive y accesibilidad del primer CI pasaron en PC, tablet y celular. Se añade el recorrido de recuperación al siguiente CI.
+- Compilación, tipos y lint correctos; audit de dependencias sigue bloqueado por el aviso transitivo del SDK.
+- Storage y metadatos confirmados; generación WebP optimizada.
+- El último advisor dejó 15 avisos de funciones privilegiadas y 2 informativos, sin advertencias de índices ni tablas sin políticas. No se suprimieron observaciones.
 
-## Bloqueo de permisos
+## Credenciales y preparación de uso real
 
-La revisión automática bloqueó la recuperación de API_KEY administrativa. No se obtuvo ni se buscó por otra ruta. Por ello no se crearon identidades temporales mediante la API administrativa ni se ejecutó la prueba remota autenticada/concurrente. No existe una cuenta administrativa de negocio predeterminada.
+El usuario autorizó el uso de API_KEY exclusivamente en servidor para pruebas. Se recuperó sin mostrarla ni incorporarla a Git; se eliminó su copia local después de las pruebas. No se relajó la verificación de correo ni se habilitó registro público.
 
-No se ha desplegado frontend en producción ni se han mezclado ramas. La implementación debe permanecer en un PR en borrador hasta resolver los bloqueos y completar las comprobaciones pendientes.
+Falta elegir y habilitar la primera cuenta administrativa real. La autorización para pruebas no se utilizó para crear una cuenta permanente con datos inferidos. Creación de identidades desde app, carga de fotos validada en servidor, Gemini externo y operación completa siguen pendientes en #3. La alerta de dependencia permanece en #2.
+
+No se ha desplegado frontend en producción ni se han mezclado ramas. Mantener el PR en borrador hasta completar la revisión.

@@ -2,7 +2,7 @@
 
 Aplicación privada de ventas e inventario para ferretería. React + TypeScript + Vite, con InsForge/PostgreSQL. Identidad azul y naranja basada en las 24 pantallas y estados aprobados para PC, tablet y celular.
 
-**Estado: implementación inicial en revisión, no preparada para producción.** El frontend y los comandos SQL están implementados; faltan la primera cuenta administrativa, pruebas autenticadas contra InsForge y la revisión visual completa de todos los dispositivos. No existe un acceso de demostración ni datos comerciales ficticios en el backend.
+**Estado: implementación inicial en revisión, no preparada para producción.** El frontend y los comandos SQL están implementados; faltan la primera cuenta administrativa de uso real, la revisión completa de los recorridos visuales y el cierre de la alerta transitiva del SDK. Se ejecutaron pruebas autenticadas remotas con cuentas temporales y limpieza posterior. No existe un acceso de demostración ni datos comerciales ficticios en el backend.
 
 ## Ejecutar
 
@@ -44,6 +44,12 @@ No crees otro proyecto si ya tienes el directorio vinculado. Las migraciones est
 
 Configuración aplicada en desarrollo: registro público deshabilitado, correo verificado, contraseña mínima de 12 caracteres y archivos limitados a 2 MB. Deben definirse los dominios finales antes de desplegar.
 
+### Pruebas remotas
+
+Se verificaron con el SDK real nueve casos en `acemar-dev`: acceso anónimo rechazado, dos vendedores por la última unidad, reintento idempotente, saldo de stock, restricciones sobre deudas/costos/roles, anulación no autorizada y restitución del lote. Las identidades y los datos temporales se eliminaron. La copia local de la clave administrativa se retiró tras las pruebas.
+
+El script `scripts/live-smoke.mjs` es opt-in (`ACEMAR_LIVE_TESTS=1`), requiere el proyecto `acemar-dev` y un operador autorizado que prepare los archivos locales de credenciales. Nunca debe ejecutarse en producción ni desde CI sin un entorno aislado y un gestor de secretos.
+
 ### Primera cuenta
 
 Un operador autorizado debe crear una identidad en el panel de autenticación de InsForge con su correo y contraseña elegidos de forma privada. Luego debe crear el perfil administrativo mediante el CLI, sustituyendo el UUID real y el nombre:
@@ -73,7 +79,7 @@ No existe una cuenta predeterminada. El rol no se toma de metadatos editables po
 - Resumen por período y arqueo de día con importe contado.
 - Auditoría y consultas administrativas.
 - Asistente local por reglas, sin llamadas externas.
-- Exportación CSV de la página filtrada e impresión/Guardar PDF mediante el navegador.
+- Exportación XLSX de la página filtrada, PDF descargable de ventas/proformas y recuperación de contraseña por código.
 
 Una implementación en código no equivale a un flujo validado en el backend remoto. Consulta la matriz de estado antes de considerarla terminada.
 
@@ -97,12 +103,12 @@ Los archivos de negocio se almacenan en Storage y sus referencias en PostgreSQL.
 
 ## Pendientes antes de uso real
 
-- Primera cuenta administrativa y pruebas autenticadas end-to-end.
-- Concurrencia real con varias conexiones y reintentos de red.
-- Pruebas de navegador en PC/tablet/celular y auditoría de accesibilidad completa.
-- Recuperación de contraseña en interfaz y revisión de sesión/CORS en los dominios finales.
+- Primera cuenta administrativa de uso real y recorridos completos en navegador autenticado.
+- Ampliar concurrencia real a créditos/abonos y fallos de red: la venta de la última unidad y el reintento idempotente ya se comprobaron remotamente.
+- Auditoría de accesibilidad completa: CI verificó el acceso en PC/tablet/celular; las demás pantallas aún requieren revisión integral.
+- Entrega real del correo de recuperación y revisión de sesión/CORS en los dominios finales. La interfaz de recuperación y sus validaciones ya están implementadas.
 - MFA administrativo según soporte del proveedor; no se afirma que esté habilitado.
-- Crear identidades desde la app, carga segura de imágenes, XLSX y PDF generado como archivo por el servidor.
+- Crear identidades desde la app, carga segura de imágenes y documentos generados/persistidos por el servidor. XLSX y PDF descargables ya se generan en el navegador desde los datos autorizados.
 - Configurar proveedor de IA si se requiere Gemini; el modo local ya funciona.
 - Límites de solicitud perimetrales, backup/restauración y monitoreo operativo.
 - Revisar peso del SDK y advertencia de módulo `crypto` externo antes de habilitar OAuth.
