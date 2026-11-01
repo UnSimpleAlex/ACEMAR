@@ -330,7 +330,9 @@ export function RecordDetail({
       <div className="form-actions">
         <Button
           variant="secondary"
-          disabled={exportBusy}
+          disabled={
+            exportBusy || (entity === "quotations" && !detail.data?.lines)
+          }
           onClick={() => void exportRecord()}
         >
           {exportBusy ? "Generando…" : "Descargar PDF"}

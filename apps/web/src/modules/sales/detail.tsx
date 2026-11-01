@@ -25,6 +25,7 @@ export default function Detail() {
   const [review, setReview] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
   if (data.isPending) return <Loading />;
   if (data.error || !data.data)
     return <ErrorState error={data.error} retry={() => void data.refetch()} />;
@@ -36,6 +37,8 @@ export default function Detail() {
     })),
   );
   async function exportPDF() {
+    if (exportBusy) return;
+    setExportBusy(true);
     setError("");
     try {
       const { salePDF, download } = await import("../../shared/documents");
@@ -48,6 +51,8 @@ export default function Detail() {
       );
     } catch {
       setError("No se pudo generar el documento. Reintenta.");
+    } finally {
+      setExportBusy(false);
     }
   }
   async function change() {
@@ -92,9 +97,13 @@ export default function Detail() {
           </h1>
           <p>{date(sale.created_at)}</p>
         </div>
-        <Button variant="secondary" onClick={() => void exportPDF()}>
+        <Button
+          variant="secondary"
+          disabled={exportBusy}
+          onClick={() => void exportPDF()}
+        >
           <Printer size={18} />
-          Descargar PDF
+          {exportBusy ? "Generando…" : "Descargar PDF"}
         </Button>
       </div>
       {error && !mode && <ErrorState error={new Error(error)} />}
