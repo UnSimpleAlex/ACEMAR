@@ -23,7 +23,7 @@ Exportaciones: XLSX de la página visible y PDF descargable de ventas/proformas,
 
 ## Comprobaciones actualizadas
 
-- 14 pruebas de interfaz, importes, recuperación, cierre de sesión y archivos reales (Vitest): correctas.
+- 19 pruebas de interfaz, importes, recuperación, cierre de sesión y archivos reales (Vitest): correctas.
 - 9 pruebas de PostgreSQL aislado (PGlite): correctas.
 - 9 comprobaciones autenticadas contra InsForge real: correctas, incluida venta concurrente de la última unidad, reintento, autorización y restitución de lote.
 - Cuentas y datos de prueba eliminados; se comprobaron cero perfiles, productos, ventas y lotes en el backend al terminar.
@@ -38,4 +38,6 @@ El usuario autorizó el uso de API_KEY exclusivamente en servidor para pruebas. 
 
 Falta elegir y habilitar la primera cuenta administrativa real. La autorización para pruebas no se utilizó para crear una cuenta permanente con datos inferidos. Creación de identidades desde app, carga de fotos validada en servidor, Gemini externo y operación completa siguen pendientes en #3. La alerta de dependencia permanece en #2.
 
-No se ha desplegado frontend en producción ni se han mezclado ramas. Mantener el PR en borrador hasta completar la revisión.
+Se publicó una vista previa privada en https://acemar-preview.braceddog.chatgpt.site con acceso mediante ChatGPT y autenticación adicional de ACEMAR. Es una versión de evaluación, no una aprobación de uso operativo. No se han mezclado ramas. Mantener los PR en borrador hasta completar la revisión.
+
+Continuación #5: UUID v4 con alternativa criptográfica para navegadores que no exponen randomUUID en HTTP; pantalla de recuperación ante errores de renderizado sin mostrar detalles internos. Cinco pruebas de regresión nuevas. Estos cambios están en fix/5-recuperacion-vista-previa y todavía no se han publicado en la vista alojada. La cuenta administradora sigue pendiente del correo elegido por el usuario.
