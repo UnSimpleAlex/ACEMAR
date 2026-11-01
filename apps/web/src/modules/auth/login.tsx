@@ -1,3 +1,4 @@
+import { Reset } from "./reset";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,6 +14,7 @@ const schema = z.object({
 export default function Login() {
   const auth = useAuth();
   const [visible, setVisible] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
   const [error, setError] = useState("");
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -49,7 +51,7 @@ export default function Login() {
             src="/warehouse.webp"
             alt=""
             width="1200"
-            height="594"
+            height="600"
           />
           <div>
             <strong>Todo conectado</strong>
@@ -136,6 +138,13 @@ export default function Login() {
                 {form.formState.isSubmitting ? "Ingresando…" : "Ingresar"}
                 <ArrowRight size={18} />
               </Button>
+              <Button
+                variant="ghost"
+                disabled={!configured}
+                onClick={() => setResetOpen(true)}
+              >
+                Olvidé mi contraseña
+              </Button>
               <p className="login-help">
                 ¿Necesitas acceso? Contacta al administrador de tu negocio.
               </p>
@@ -143,6 +152,7 @@ export default function Login() {
           )}
         </div>
       </section>
+      {resetOpen && <Reset onClose={() => setResetOpen(false)} />}
     </main>
   );
 }

@@ -9,6 +9,9 @@ test.beforeEach(async ({ page }) => {
       headers: {
         "Access-Control-Allow-Origin": "http://127.0.0.1:5173",
         "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-CSRF-Token",
       },
     }),
   );
@@ -43,4 +46,36 @@ test("acceso responsive, validación y accesibilidad", async ({
     path: testInfo.outputPath("acceso.png"),
     fullPage: true,
   });
+});
+
+test("recuperación accesible sin revelar si existe el correo", async ({
+  page,
+}) => {
+  await page.route(
+    "https://acemar-test.invalid/api/auth/email/send-reset-password",
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, message: "Instructions sent" }),
+        headers: {
+          "Access-Control-Allow-Origin": "http://127.0.0.1:5173",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Authorization, X-CSRF-Token",
+        },
+      }),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Olvidé mi contraseña" }).click();
+  const dialog = page.getByRole("dialog", { name: "Recuperar acceso" });
+  await dialog.getByLabel("Correo de trabajo").fill("prueba@example.invalid");
+  await dialog.getByRole("button", { name: "Solicitar código" }).click();
+  await expect(dialog.getByText(/Si existe una cuenta/)).toBeVisible();
+  await expect(dialog.getByLabel("Código de recuperación")).toBeVisible();
+  const audit = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(audit.violations).toEqual([]);
 });
