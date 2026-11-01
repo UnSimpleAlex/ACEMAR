@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { rpc } from "../../shared/backend";
 import type { Row, SaleLine } from "../../shared/types";
-import { money, date, quantity } from "../../shared/money";
+import { money, date, quantity, lineTotal } from "../../shared/money";
 import { Modal } from "../../shared/components/modal";
 import { Button } from "../../shared/components/ui/button";
 import { Loading, ErrorState } from "../../shared/components/feedback";
@@ -107,28 +107,88 @@ export function RecordDetail({
       rpc<Detail>("acemar_detail", { p_entity: entity, p_id: row.id }),
     enabled: ["customers", "quotations"].includes(entity),
   });
-  async function exportQuote() {
-    if (!detail.data?.lines) return;
+  async function exportRecord() {
+    if (entity === "quotations" && !detail.data?.lines) return;
     setExportBusy(true);
     setExportError("");
     try {
-      const { documentPDF, download } = await import("../../shared/documents");
-      const lines = detail.data.lines;
-      const bytes = await documentPDF(
-        `Proforma N. ${row.number}`,
-        `${String(row.customer_name || "Cliente sin especificar")} | ${date(row.created_at)}`,
-        [
-          ...lines.map((l) => ({
-            label: `${l.quantity} ${l.unit_name} - ${l.product_name}`,
-            amount: money(Number(l.quantity) * Number(l.price)),
-          })),
-          { label: "TOTAL COTIZADO", amount: money(row.total) },
-        ],
-        "No reserva existencias. Precios y disponibilidad sujetos a revision al vender.",
-      );
+      const { reportPDF, download } = await import("../../shared/documents");
+      const { reportAssets } = await import("../../shared/report-assets");
+      const { productColumns, productReportRows } =
+        await import("../../shared/report-data");
+      const product = entity === "products";
+      const quotation = entity === "quotations";
+      const rows = product
+        ? productReportRows([row])
+        : quotation
+          ? (detail.data?.lines ?? []).map((l) => ({
+              ...l,
+              subtotal: lineTotal(Number(l.quantity), Number(l.price)),
+            }))
+          : [
+              ...Object.entries(row)
+                .filter(([key]) => names[key])
+                .map(([key, value]) => ({
+                  label: names[key],
+                  value: format(key, value),
+                })),
+              ...(detail.data?.payments ?? []).map((p) => ({
+                label: `Abono ${date(p.created_at)}`,
+                value: money(p.amount),
+              })),
+              ...(detail.data?.sales ?? []).map((s) => ({
+                label: `Venta N.º ${s.number} · ${date(s.created_at)}`,
+                value: money(s.total),
+              })),
+            ];
+      const assets = await reportAssets(product ? [row] : []);
+      const columns = product
+        ? productColumns
+        : quotation
+          ? [
+              { key: "product_name", label: "PRODUCTO" },
+              { key: "unit_name", label: "UNIDAD" },
+              { key: "quantity", label: "CANTIDAD", numeric: true },
+              {
+                key: "price",
+                label: "PRECIO UNIT.",
+                numeric: true,
+                currency: true,
+              },
+              {
+                key: "subtotal",
+                label: "IMPORTE",
+                numeric: true,
+                currency: true,
+              },
+            ]
+          : [
+              { key: "label", label: "CAMPO" },
+              { key: "value", label: "INFORMACIÓN" },
+            ];
+      const bytes = await reportPDF({
+        title: quotation
+          ? `Proforma N. ${row.number}`
+          : product
+            ? "Ficha de producto"
+            : "Detalle del registro",
+        subtitle: quotation
+          ? `${String(row.customer_name || "Cliente sin especificar")} | ${date(row.created_at)}`
+          : String(row.name ?? row.product_name ?? row.action ?? "ACEMAR"),
+        columns,
+        rows,
+        assets,
+        landscape: product,
+        totals: quotation
+          ? [{ label: "TOTAL COTIZADO", value: money(row.total) }]
+          : undefined,
+        footer: quotation
+          ? "No reserva existencias. Precios y disponibilidad se revisan al vender."
+          : "Documento interno de ACEMAR. Ilustraciones de producto cuando corresponda.",
+      });
       download(
         new Blob([new Uint8Array(bytes).buffer], { type: "application/pdf" }),
-        `ACEMAR-proforma-${row.number}.pdf`,
+        `ACEMAR-${entity}-${row.number ?? row.code ?? row.id}.pdf`,
       );
     } catch {
       setExportError("No se pudo generar el PDF. Reintenta.");
@@ -246,15 +306,9 @@ export function RecordDetail({
         <Button
           variant="secondary"
           disabled={exportBusy}
-          onClick={() =>
-            entity === "quotations" ? void exportQuote() : window.print()
-          }
+          onClick={() => void exportRecord()}
         >
-          {entity === "quotations"
-            ? exportBusy
-              ? "Generando…"
-              : "Descargar PDF"
-            : "Imprimir / Guardar PDF"}
+          {exportBusy ? "Generando…" : "Descargar PDF"}
         </Button>
         <Button onClick={onClose}>Cerrar</Button>
       </div>
