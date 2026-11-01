@@ -23,7 +23,7 @@ Exportaciones: XLSX de la página visible y PDF descargable de ventas/proformas,
 
 ## Comprobaciones actualizadas
 
-- 22 pruebas de interfaz, importes, recuperación, cierre de sesión y archivos reales (Vitest): correctas.
+- 28 pruebas de interfaz, importes, recuperación, cierre de sesión y archivos reales (Vitest): correctas.
 - 13 pruebas de PostgreSQL aislado (PGlite): correctas.
 - 9 comprobaciones autenticadas contra InsForge real: correctas, incluida venta concurrente de la última unidad, reintento, autorización y restitución de lote.
 - Cuentas y datos de prueba eliminados; se comprobaron cero perfiles, productos, ventas y lotes en el backend al terminar.
@@ -47,3 +47,9 @@ Continuación #5: UUID v4 con alternativa criptográfica para navegadores que no
 Se importaron 12 productos basados en el seed original, con unidad base, lote inicial, costo al 70 %, movimiento de entrada y auditoría. Las 12 imágenes ilustrativas generadas están en InsForge Storage, WebP 640 × 640, 206.422 bytes en conjunto. Se comprobaron remotamente tipo, firma, longitud y SHA-256 de los 12 objetos. Los metadatos y la procedencia están en data/evaluation y docs/catalogo-evaluacion.md.
 
 No se importaron ventas, pagos, deudas ni usuarios de prueba del WPF. Las categorías están documentadas en el manifiesto; el filtro de categorías no se ha implementado en la aplicación. Las unidades alternativas de arena quedan pendientes de una regla comercial consistente. El formulario de subida segura por usuarios, precios masivos, Gemini externo y recorrido autenticado completo siguen pendientes.
+
+## Presentación y exportaciones (#9)
+
+Productos y Existencias incorporan miniaturas en los listados y tarjetas móviles. Exportar Excel adapta las tipografías y la distribución del archivo de referencia: marca ACEMAR, azul, indicadores, tabla y hojas principal/Resumen/Datos. Las imágenes se incrustan en el documento. Exportar PDF añade inventario con miniaturas, fichas y tablas A4 con marca, fuentes libres incrustadas y paginación. El PDF descargado se imprime desde su visor; no imprime los controles de la interfaz.
+
+Los reportes siguen limitados a la página visible y sus filtros. El valor mostrado es a precio de venta y no costo contable. Validación: 28 pruebas locales, tipos, lint y compilación; revisión visual de las tres hojas y de PDF paginados. El audit mantiene las mismas tres entradas de la cadena del SDK, sin hallazgo nuevo para fontkit. Ver docs/reportes.md.
