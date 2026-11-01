@@ -1,3 +1,4 @@
+import { ErrorBoundary } from "./shared/components/error-boundary";
 import { useCart } from "./modules/pos/cart";
 import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
@@ -70,12 +71,14 @@ function App() {
 }
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryClientProvider client={cache}>
-      <BrowserRouter>
-        <AuthProvider onSessionEnd={() => useCart.getState().clear()}>
-          <App />
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={cache}>
+        <BrowserRouter>
+          <AuthProvider onSessionEnd={() => useCart.getState().clear()}>
+            <App />
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );
