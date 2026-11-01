@@ -1,3 +1,4 @@
+import { useCart } from "./modules/pos/cart";
 import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -71,7 +72,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={cache}>
       <BrowserRouter>
-        <AuthProvider>
+        <AuthProvider onSessionEnd={() => useCart.getState().clear()}>
           <App />
         </AuthProvider>
       </BrowserRouter>

@@ -16,7 +16,13 @@ interface AuthState {
   logout: () => Promise<void>;
 }
 const Context = createContext<AuthState | null>(null);
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({
+  children,
+  onSessionEnd,
+}: {
+  children: ReactNode;
+  onSessionEnd?: () => void;
+}) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
@@ -55,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setSignedIn(false);
     cache.clear();
+    onSessionEnd?.();
   };
   return (
     <Context.Provider value={{ profile, loading, signedIn, refresh, logout }}>

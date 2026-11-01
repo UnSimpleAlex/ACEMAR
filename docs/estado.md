@@ -23,11 +23,11 @@ Exportaciones: XLSX de la página visible y PDF descargable de ventas/proformas,
 
 ## Comprobaciones actualizadas
 
-- 12 pruebas de interfaz, importes, recuperación y archivos reales (Vitest): correctas.
+- 14 pruebas de interfaz, importes, recuperación, cierre de sesión y archivos reales (Vitest): correctas.
 - 9 pruebas de PostgreSQL aislado (PGlite): correctas.
 - 9 comprobaciones autenticadas contra InsForge real: correctas, incluida venta concurrente de la última unidad, reintento, autorización y restitución de lote.
 - Cuentas y datos de prueba eliminados; se comprobaron cero perfiles, productos, ventas y lotes en el backend al terminar.
-- Las 3 pruebas de acceso responsive y accesibilidad del primer CI pasaron en PC, tablet y celular. Se añade el recorrido de recuperación al siguiente CI.
+- Las 3 pruebas de acceso responsive y accesibilidad del primer CI pasaron en PC, tablet y celular. El siguiente CI también superó 6 pruebas de acceso y recuperación, distribuidas en PC/tablet/celular.
 - Compilación, tipos y lint correctos; audit de dependencias sigue bloqueado por el aviso transitivo del SDK.
 - Storage y metadatos confirmados; generación WebP optimizada.
 - El último advisor dejó 15 avisos de funciones privilegiadas y 2 informativos, sin advertencias de índices ni tablas sin políticas. No se suprimieron observaciones.
