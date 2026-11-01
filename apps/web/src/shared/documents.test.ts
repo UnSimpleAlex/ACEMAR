@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { it, expect } from "vitest";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 import { unzipSync, strFromU8 } from "fflate";
-import { documentPDF, salePDF } from "./documents";
+import { documentPDF, salePDF, centeredBaseline } from "./documents";
 import { workbookBlob } from "./spreadsheets";
 it("PDF real legible y paginado para listados largos", async () => {
   const bytes = await documentPDF(
@@ -60,4 +60,18 @@ it("Excel es un XLSX válido y trata texto con = como texto, no fórmula", async
   const sheet = strFromU8(zip["xl/worksheets/sheet1.xml"]);
   expect(sheet).not.toMatch(/<f[ >]/);
   expect(sheet).toContain("73");
+});
+
+it("centra el bloque tipográfico completo, incluyendo descendentes y múltiples líneas", async () => {
+  const pdf = await PDFDocument.create();
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  for (const lines of [1, 2, 3]) {
+    const baseline = centeredBaseline(300, 72, font, 9, lines, 12);
+    const ascent = font.heightAtSize(9, { descender: false });
+    const descent = font.heightAtSize(9, { descender: true }) - ascent;
+    const upperSpace = 300 - (baseline + ascent);
+    const lowerSpace = baseline - (lines - 1) * 12 - descent - (300 - 72);
+    expect(upperSpace).toBeCloseTo(lowerSpace, 6);
+    expect(upperSpace).toBeGreaterThan(0);
+  }
 });

@@ -1,3 +1,4 @@
+import type { Font } from "@pdf-lib/fontkit";
 import type { ReportFontBytes } from "./report-font";
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import { money, quantity } from "./money";
@@ -46,6 +47,19 @@ function wrap(value: unknown, font: PDFFont, size: number, width: number) {
   }
   return lines;
 }
+export function centeredBaseline(
+  top: number,
+  height: number,
+  font: PDFFont,
+  size: number,
+  lines = 1,
+  leading = size * 1.33,
+) {
+  const ascent = font.heightAtSize(size, { descender: false });
+  const descent = font.heightAtSize(size, { descender: true }) - ascent;
+  const block = ascent + descent + (lines - 1) * leading;
+  return top - (height - block) / 2 - ascent;
+}
 export interface ReportPDFOptions {
   title: string;
   subtitle: string;
@@ -64,6 +78,7 @@ export async function reportPDF(options: ReportPDFOptions) {
   pdf.setAuthor("ACEMAR");
   pdf.setSubject("Gestión comercial - documento interno");
   let font: PDFFont, bold: PDFFont;
+  const inkFonts = new Map<PDFFont, Font>();
   const fontBytes =
     options.fontBytes ??
     (typeof document !== "undefined"
@@ -74,10 +89,44 @@ export async function reportPDF(options: ReportPDFOptions) {
     pdf.registerFontkit(fontkit);
     font = await pdf.embedFont(fontBytes.regular, { subset: true });
     bold = await pdf.embedFont(fontBytes.bold, { subset: true });
+    inkFonts.set(font, fontkit.create(fontBytes.regular));
+    inkFonts.set(bold, fontkit.create(fontBytes.bold));
   } else {
     font = await pdf.embedFont(StandardFonts.Helvetica);
     bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   }
+  const inkBaseline = (
+    top: number,
+    cellHeight: number,
+    face: PDFFont,
+    size: number,
+    lines: string[],
+    leading: number,
+  ) => {
+    const parsed = inkFonts.get(face);
+    if (!parsed)
+      return centeredBaseline(
+        top,
+        cellHeight,
+        face,
+        size,
+        lines.length,
+        leading,
+      );
+    const scale = size / parsed.unitsPerEm;
+    const boxes = lines.map((line) => parsed.layout(line || " ").bbox);
+    const upper = Math.max(
+      ...boxes.map(
+        (b, i) => (Number.isFinite(b.maxY) ? b.maxY * scale : 0) - i * leading,
+      ),
+    );
+    const lower = Math.min(
+      ...boxes.map(
+        (b, i) => (Number.isFinite(b.minY) ? b.minY * scale : 0) - i * leading,
+      ),
+    );
+    return top - cellHeight / 2 - (upper + lower) / 2;
+  };
   const width = options.landscape ? 841.89 : 595.28,
     height = options.landscape ? 595.28 : 841.89,
     margin = 40,
@@ -159,7 +208,7 @@ export async function reportPDF(options: ReportPDFOptions) {
       lines.forEach((line, k) =>
         page.drawText(line, {
           x: x + 8,
-          y: y - (h - lines.length * 11) / 2 - 8 - k * 11,
+          y: inkBaseline(y, h, bold, 8, lines, 11) - k * 11,
           size: 8,
           font: bold,
           color: rgb(1, 1, 1),
@@ -227,7 +276,7 @@ export async function reportPDF(options: ReportPDFOptions) {
         } else
           page.drawText("Sin imagen", {
             x: x + 4,
-            y: y - heightNeeded / 2 - 2,
+            y: inkBaseline(y, heightNeeded, font, 6, ["Sin imagen"], 8),
             size: 6,
             font,
             color: gray,
@@ -238,7 +287,7 @@ export async function reportPDF(options: ReportPDFOptions) {
             x: col.numeric
               ? x + widths[i] - 8 - font.widthOfTextAtSize(line, 9)
               : x + 8,
-            y: y - (heightNeeded - contents[i].length * 12) / 2 - 9 - k * 12,
+            y: inkBaseline(y, heightNeeded, font, 9, contents[i], 12) - k * 12,
             size: 9,
             font,
             color: navy,
@@ -338,12 +387,18 @@ export async function documentPDF(
     footer,
   });
 }
-export async function salePDF(detail: SaleDetail, fontBytes?: ReportFontBytes) {
+export async function salePDF(
+  detail: SaleDetail,
+  fontBytes?: ReportFontBytes,
+  assets?: ReportAssets,
+) {
   return reportPDF({
     fontBytes,
+    assets,
     title: `Venta N. ${detail.sale.number}`,
     subtitle: `${new Date(detail.sale.created_at).toLocaleString("es-PE", { timeZone: "America/Lima" })} | ${detail.sale.state === "cancelled" ? "ANULADA" : "CONFIRMADA"} | ${detail.sale.payment === "cash" ? "Contado" : "Crédito"}`,
     columns: [
+      { key: "image_url", label: "FOTO", image: true },
       { key: "product_name", label: "PRODUCTO" },
       { key: "unit_name", label: "UNIDAD" },
       { key: "quantity", label: "CANTIDAD", numeric: true },
