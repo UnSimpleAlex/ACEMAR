@@ -4,13 +4,15 @@ import { Package } from "lucide-react";
 export function ProductImage({
   src,
   name,
+  compact = false,
 }: {
   src: string | null;
   name: string;
+  compact?: boolean;
 }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   return (
-    <div className="product-image">
+    <div className={`product-image${compact ? " product-image--compact" : ""}`}>
       {src && failedSrc !== src ? (
         <img
           src={src}
