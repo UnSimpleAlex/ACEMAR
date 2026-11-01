@@ -167,7 +167,13 @@ export default function POS() {
           {cart.lines.map((l) => (
             <article className="cart-line" key={l.unit.id}>
               <div>
-                <strong>{l.product.name}</strong>
+                <div className="product-list-identity">
+                  <ProductImage
+                    src={l.product.image_url}
+                    name={l.product.name}
+                  />
+                  <strong>{l.product.name}</strong>
+                </div>
                 <small>
                   {money(Number(l.product.price) * Number(l.unit.factor))} por{" "}
                   {l.unit.name}
