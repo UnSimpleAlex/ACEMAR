@@ -1,3 +1,4 @@
+import { ProductImage } from "../../shared/components/product-image";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
@@ -38,7 +39,9 @@ export default function Detail() {
     setError("");
     try {
       const { salePDF, download } = await import("../../shared/documents");
-      const bytes = await salePDF({ sale, lines });
+      const { reportAssets } = await import("../../shared/report-assets");
+      const assets = await reportAssets(lines.map((l) => ({ ...l })));
+      const bytes = await salePDF({ sale, lines }, undefined, assets);
       download(
         new Blob([new Uint8Array(bytes).buffer], { type: "application/pdf" }),
         `ACEMAR-venta-${sale.number}.pdf`,
@@ -124,7 +127,19 @@ export default function Detail() {
             <tbody>
               {lines.map((l) => (
                 <tr key={l.id}>
-                  <td data-label="Producto">{l.product_name}</td>
+                  <td data-label="Producto">
+                    <div className="product-list-identity">
+                      <ProductImage
+                        compact
+                        src={l.image_url ?? null}
+                        name={l.product_name}
+                      />
+                      <span>
+                        {l.product_name}
+                        {l.image_generated && <small>Ilustración actual</small>}
+                      </span>
+                    </div>
+                  </td>
                   <td data-label="Unidad">{l.unit_name}</td>
                   <td data-label="Cantidad">{l.quantity}</td>
                   <td data-label="Precio">{money(l.price)}</td>
@@ -183,6 +198,11 @@ export default function Detail() {
             lines.map((l) => (
               <div className="correction-line" key={l.id}>
                 <label htmlFor={`q-${l.id}`}>
+                  <ProductImage
+                    compact
+                    src={l.image_url ?? null}
+                    name={l.product_name}
+                  />
                   {l.product_name}
                   <small>
                     Antes: {l.quantity} {l.unit_name} · {money(l.subtotal)}
