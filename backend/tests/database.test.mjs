@@ -60,8 +60,11 @@ test("producto crea unidad base y lotes con trazabilidad", async () => {
     base_unit: "saco",
     minimum: 2,
   });
-  const catalog = await call("acemar_catalog", ["", 0]);
-  unit = catalog[0].units[0].id;
+  unit = await save("units", {
+    product_id: product,
+    name: "Presentación de prueba",
+    factor: 1,
+  });
   lot1 = await save("lots", {
     product_id: product,
     quantity: 2,
@@ -175,7 +178,7 @@ test("corrección conserva factor histórico y registra motivo", async () => {
   await save("units", {
     id: unit,
     product_id: product,
-    name: "saco",
+    name: "Presentación de prueba",
     factor: 5,
   });
   const changed = await call("acemar_change_sale", [
@@ -193,7 +196,7 @@ test("corrección conserva factor histórico y registra motivo", async () => {
   await save("units", {
     id: unit,
     product_id: product,
-    name: "saco",
+    name: "Presentación de prueba",
     factor: 1,
   });
 });
@@ -357,4 +360,96 @@ test("contexto IA exige administrador y aplica cuota atómica sin guardar pregun
     () => db.query("SELECT * FROM public.assistant_usage"),
     /permission denied/,
   );
+});
+
+test("producto sin historial se elimina; con operaciones se conserva y las fotos exigen permisos", async () => {
+  await user(seller);
+  await assert.rejects(
+    () => call("acemar_delete_product", [product]),
+    /autorizada/,
+  );
+  await assert.rejects(
+    () => call("acemar_media_target", [product]),
+    /autorizada/,
+  );
+  await user(admin);
+  await assert.rejects(
+    () => call("acemar_delete_product", [product]),
+    /historial/,
+  );
+  const baseUnit = (
+    await call("acemar_catalog", ["TEST-001", 0])
+  )[0].units.find((u) => u.name === "saco");
+  await assert.rejects(
+    () =>
+      save("units", {
+        id: baseUnit.id,
+        product_id: product,
+        name: "Unidad adulterada",
+        factor: 9,
+      }),
+    /base no modificable/,
+  );
+  const id = await save("products", {
+    code: "PHOTO-QA",
+    name: "Producto nuevo para imagen",
+    base_unit: "Unidad",
+    minimum: 0,
+  });
+  assert.equal(
+    await call("acemar_media_target", [id]),
+    "Producto nuevo para imagen",
+  );
+  await assert.rejects(
+    () =>
+      call("acemar_commit_product_image", [
+        id,
+        "products/other.webp",
+        "https://invalid.test/photo",
+        20,
+        100,
+        100,
+      ]),
+    /inválidos/,
+  );
+  const key = `products/uploads/${id}/${crypto.randomUUID()}.webp`;
+  await assert.rejects(
+    () =>
+      call("acemar_commit_product_image", [
+        id,
+        key,
+        "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/" +
+          key,
+        20,
+        100,
+        100,
+      ]),
+    /Imagen no disponible/,
+  );
+  await db.exec("RESET ROLE");
+  await db.query("INSERT INTO storage.objects(bucket,key) VALUES($1,$2)", [
+    "acemar-public",
+    key,
+  ]);
+  await user(admin);
+  const returnedUrl =
+    "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/" +
+    encodeURIComponent(key) +
+    "?v=" +
+    "a".repeat(32);
+  await call("acemar_commit_product_image", [
+    id,
+    key,
+    returnedUrl,
+    20,
+    100,
+    100,
+  ]);
+  const catalog = await call("acemar_catalog", ["PHOTO-QA", 0]);
+  assert.equal(catalog[0].image_url, returnedUrl);
+  assert.equal(catalog[0].image_generated, false);
+  await call("acemar_delete_product", [id]);
+  assert.equal((await call("acemar_catalog", ["PHOTO-QA", 0])).length, 0);
+  const audit = await call("acemar_list", ["audit", 0, "Eliminar producto"]);
+  assert.equal(audit[0].before_data.code, "PHOTO-QA");
 });
