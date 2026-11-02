@@ -70,7 +70,12 @@ function ProductCard({ product }: { product: Product }) {
             <Plus size={21} />
           </Button>
         </div>
-        {product.image_generated && <small>Ilustración del producto</small>}
+        <small
+          className="product-image-note"
+          aria-hidden={!product.image_generated}
+        >
+          {product.image_generated ? "Ilustración del producto" : "\u00a0"}
+        </small>
       </div>
     </article>
   );

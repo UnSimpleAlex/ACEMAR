@@ -437,7 +437,7 @@ tbody tr:hover {
 }
 .pos-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(330px, 0.75fr);
+  grid-template-columns: minmax(0, 1fr) minmax(304px, 360px);
   gap: 24px;
   align-items: start;
 }
@@ -454,7 +454,7 @@ tbody tr:hover {
 }
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 16px;
 }
 .product-card {
@@ -480,6 +480,7 @@ tbody tr:hover {
   height: 128px;
 }
 .product-body {
+  min-width: 0;
   padding: 8px 16px 16px;
   display: flex;
   flex-direction: column;
@@ -487,21 +488,27 @@ tbody tr:hover {
   flex: 1;
 }
 .product-body h3 {
+  min-height: 4.2em;
+  overflow-wrap: anywhere;
   font-size: 14px;
   line-height: 1.4;
   margin: 0;
 }
 .product-body select {
-  min-height: 40px;
+  margin-top: auto;
+  min-height: 48px;
   font-size: 12px;
   padding: 8px;
+}
+.product-image-note {
+  min-height: 1.5em;
 }
 .product-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: auto;
+  margin-top: 0;
 }
 .product-bottom strong {
   font-size: 18px;
@@ -532,6 +539,9 @@ tbody tr:hover {
   color: #855300;
 }
 .ticket {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 128px);
   border: 1px solid var(--border);
   border-radius: 12px;
   background: white;
@@ -552,7 +562,7 @@ tbody tr:hover {
 }
 .cart-lines {
   padding: 0 24px;
-  max-height: 48vh;
+  min-height: 0;
   overflow-y: auto;
 }
 .cart-line {
@@ -604,6 +614,18 @@ tbody tr:hover {
 }
 .ticket-footer {
   padding: 24px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+}
+.ticket-heading {
+  flex-shrink: 0;
+}
+.desktop-ticket > .empty {
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 24px;
+  overflow: auto;
+  justify-content: flex-start;
 }
 .total-line {
   display: flex;
@@ -1348,6 +1370,7 @@ dd {
     gap: 8px;
   }
   .product-body h3 {
+    min-height: 4.2em;
     font-size: 13px;
   }
   .product-bottom strong {
