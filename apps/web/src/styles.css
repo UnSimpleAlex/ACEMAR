@@ -1915,3 +1915,173 @@ h3 {
   display: grid;
   gap: 12px;
 }
+
+/* Consistent action geometry; dialog controls never scroll below the fields. */
+.btn {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+.btn > svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+.modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  max-height: min(90dvh, 960px);
+}
+.modal-heading {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-heading > div {
+  min-width: 0;
+}
+.modal-heading .icon-btn {
+  flex-shrink: 0;
+}
+.modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px;
+  scrollbar-gutter: stable;
+}
+.modal-footer {
+  flex: 0 0 auto;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: white;
+}
+.modal-footer:empty {
+  display: none;
+}
+.form-actions {
+  position: static;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 0;
+}
+.modal-footer .form-actions {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.form-actions .btn {
+  flex: 0 0 auto;
+  min-height: 48px;
+}
+.heading-actions {
+  align-items: center;
+  justify-content: flex-end;
+}
+.heading-actions .btn {
+  flex: 0 0 auto;
+}
+.data-table th:last-child,
+.data-table td:last-child {
+  width: 1%;
+}
+.row-actions {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  justify-content: end;
+  align-items: center;
+  gap: 8px;
+}
+.row-actions .btn {
+  min-height: 44px;
+  padding: 8px 12px;
+  width: 100%;
+}
+.admin-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content max-content;
+  align-items: center;
+}
+.admin-actions > div {
+  margin: 0;
+}
+@media (max-width: 1100px) {
+  .page-heading {
+    flex-wrap: wrap;
+  }
+  .heading-actions {
+    justify-content: flex-start;
+  }
+  .admin-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-actions > div {
+    grid-column: 1/-1;
+  }
+}
+@media (max-width: 640px) {
+  .modal {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .modal-heading {
+    padding: 24px 16px 16px;
+  }
+  .modal-body {
+    flex: 1;
+    padding: 16px;
+  }
+  .modal-footer {
+    padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+  }
+  .form-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .form-actions .btn {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+  }
+  .form-actions > .btn:last-child:nth-child(odd) {
+    grid-column: 1/-1;
+  }
+  .heading-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .heading-actions .btn {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+  }
+  .heading-actions > :last-child:nth-child(odd) {
+    grid-column: 1/-1;
+  }
+  .data-table th:last-child,
+  .data-table td:last-child {
+    width: auto;
+  }
+  .row-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .row-actions .btn {
+    white-space: normal;
+    min-width: 0;
+  }
+  .admin-actions .btn {
+    white-space: normal;
+    width: 100%;
+  }
+}

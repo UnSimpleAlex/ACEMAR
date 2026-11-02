@@ -1,3 +1,4 @@
+import { ActionBar } from "../../shared/components/action-bar";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -85,14 +86,14 @@ export function Reset({ onClose }: { onClose: () => void }) {
             {request.formState.errors.email?.message}
           </p>
           {error && <ErrorState error={new Error(error)} />}
-          <div className="form-actions">
+          <ActionBar>
             <Button variant="secondary" disabled={busy} onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit" disabled={busy}>
               {busy ? "Solicitando…" : "Solicitar código"}
             </Button>
-          </div>
+          </ActionBar>
         </form>
       ) : step === "code" ? (
         <>
@@ -139,7 +140,7 @@ export function Reset({ onClose }: { onClose: () => void }) {
               </div>
             ))}
             {error && <ErrorState error={new Error(error)} />}
-            <div className="form-actions">
+            <ActionBar>
               <Button
                 variant="secondary"
                 disabled={busy}
@@ -153,7 +154,7 @@ export function Reset({ onClose }: { onClose: () => void }) {
               <Button type="submit" disabled={busy}>
                 {busy ? "Guardando…" : "Cambiar contraseña"}
               </Button>
-            </div>
+            </ActionBar>
           </form>
         </>
       ) : (

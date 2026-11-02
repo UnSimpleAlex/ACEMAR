@@ -1,3 +1,4 @@
+import { ActionBar } from "../../shared/components/action-bar";
 import { ProductImage } from "../../shared/components/product-image";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -304,7 +305,7 @@ export default function Detail() {
                 {mailNotice}
               </p>
             )}
-            <div className="form-actions">
+            <ActionBar>
               <Button
                 variant="secondary"
                 disabled={mailBusy || !email.trim()}
@@ -319,7 +320,7 @@ export default function Detail() {
                 <Mail size={16} />
                 {mailBusy ? "Preparando…" : "Enviar al cliente"}
               </Button>
-            </div>
+            </ActionBar>
           </form>
         </Modal>
       )}
@@ -409,7 +410,7 @@ export default function Detail() {
             </div>
           )}
           {error && <ErrorState error={new Error(error)} />}
-          <div className="form-actions">
+          <ActionBar>
             <Button
               variant="secondary"
               disabled={busy}
@@ -434,7 +435,7 @@ export default function Detail() {
                   ? "Confirmar cambio"
                   : "Revisar cambio"}
             </Button>
-          </div>
+          </ActionBar>
         </Modal>
       )}
     </>

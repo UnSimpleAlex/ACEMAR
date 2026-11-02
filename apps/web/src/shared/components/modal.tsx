@@ -1,6 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
+import { ModalContext } from "./modal-context";
 export function Modal({
   title,
   description,
@@ -12,6 +13,8 @@ export function Modal({
   children: ReactNode;
   onClose: () => void;
 }) {
+  const formId = useId();
+  const [footer, setFooter] = useState<HTMLDivElement | null>(null);
   return (
     <Dialog.Root
       open
@@ -25,18 +28,21 @@ export function Modal({
           className="modal"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <div className="modal-heading">
-            <div>
-              <Dialog.Title>{title}</Dialog.Title>
-              <Dialog.Description>
-                {description ?? "Revisa la información antes de continuar."}
-              </Dialog.Description>
+          <ModalContext.Provider value={{ footer, formId }}>
+            <div className="modal-heading">
+              <div>
+                <Dialog.Title>{title}</Dialog.Title>
+                <Dialog.Description>
+                  {description ?? "Revisa la información antes de continuar."}
+                </Dialog.Description>
+              </div>
+              <Dialog.Close className="icon-btn" aria-label="Cerrar">
+                <X />
+              </Dialog.Close>
             </div>
-            <Dialog.Close className="icon-btn" aria-label="Cerrar">
-              <X />
-            </Dialog.Close>
-          </div>
-          {children}
+            <div className="modal-body">{children}</div>
+            <div className="modal-footer" ref={setFooter} />
+          </ModalContext.Provider>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

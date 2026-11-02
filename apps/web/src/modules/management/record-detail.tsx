@@ -1,3 +1,4 @@
+import { ActionBar } from "../../shared/components/action-bar";
 import { ProductImage } from "../../shared/components/product-image";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -328,7 +329,7 @@ export function RecordDetail({
         </>
       )}
       {exportError && <ErrorState error={new Error(exportError)} />}
-      <div className="form-actions">
+      <ActionBar>
         <Button
           variant="secondary"
           disabled={
@@ -339,7 +340,7 @@ export function RecordDetail({
           {exportBusy ? "Generando…" : "Descargar PDF"}
         </Button>
         <Button onClick={onClose}>Cerrar</Button>
-      </div>
+      </ActionBar>
     </Modal>
   );
 }

@@ -1,3 +1,4 @@
+import { ActionBar } from "../../shared/components/action-bar";
 import { Upload, ImagePlus, X } from "lucide-react";
 import { ProductImage } from "../../shared/components/product-image";
 import { useEffect, useState } from "react";
@@ -150,7 +151,11 @@ export function EntityForm({
                   aria-label="Imagen del producto"
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
-                  onChange={(e) => void choosePhoto(e.target.files?.[0])}
+                  onChange={(e) => {
+                    const file = e.currentTarget.files?.[0];
+                    e.currentTarget.value = "";
+                    void choosePhoto(file);
+                  }}
                 />
               </div>
               <small>
@@ -326,7 +331,7 @@ export function EntityForm({
             </Button>
           </div>
         )}
-        <div className="form-actions">
+        <ActionBar>
           {row && onDelete && (
             <Button
               variant="destructive"
@@ -352,7 +357,7 @@ export function EntityForm({
           >
             {form.formState.isSubmitting ? "Guardando…" : "Guardar"}
           </Button>
-        </div>
+        </ActionBar>
       </form>
     </Modal>
   );

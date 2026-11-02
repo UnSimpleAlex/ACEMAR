@@ -1,3 +1,4 @@
+import { ActionBar } from "../../shared/components/action-bar";
 import { ProductImage } from "../../shared/components/product-image";
 import { randomUUID } from "../../shared/uuid";
 import { RecordDetail } from "./record-detail";
@@ -546,7 +547,7 @@ export default function Management() {
             )}
           </p>
           {error && <ErrorState error={new Error(error)} />}
-          <div className="form-actions">
+          <ActionBar>
             <Button
               variant="secondary"
               disabled={busy}
@@ -568,7 +569,7 @@ export default function Management() {
                   ? "Eliminar registro"
                   : "Confirmar"}
             </Button>
-          </div>
+          </ActionBar>
         </Modal>
       )}
       {abono && (
@@ -651,7 +652,7 @@ function Abono({
         <strong>{money(Number(customer.balance) - Number(amount))}</strong>
       </div>
       {error && <ErrorState error={new Error(error)} />}
-      <div className="form-actions">
+      <ActionBar>
         <Button variant="secondary" disabled={busy} onClick={onClose}>
           Cancelar
         </Button>
@@ -665,7 +666,7 @@ function Abono({
         >
           {busy ? "Registrando…" : "Confirmar abono"}
         </Button>
-      </div>
+      </ActionBar>
     </Modal>
   );
 }
@@ -757,7 +758,7 @@ function Units({
         Los cambios no modifican los factores guardados en ventas anteriores.
       </p>
       {error && <ErrorState error={new Error(error)} />}
-      <div className="form-actions">
+      <ActionBar>
         <Button variant="secondary" disabled={busy} onClick={onClose}>
           Cerrar
         </Button>
@@ -767,7 +768,7 @@ function Units({
         >
           Guardar unidad
         </Button>
-      </div>
+      </ActionBar>
     </Modal>
   );
 }

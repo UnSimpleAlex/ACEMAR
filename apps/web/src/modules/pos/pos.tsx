@@ -1,3 +1,4 @@
+import { ActionBar } from "../../shared/components/action-bar";
 import { ProductImage } from "../../shared/components/product-image";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -385,7 +386,7 @@ export default function POS() {
           description="Se quitarán todos los productos de esta venta en preparación."
           onClose={() => setClearConfirm(false)}
         >
-          <div className="form-actions">
+          <ActionBar>
             <Button variant="secondary" onClick={() => setClearConfirm(false)}>
               Conservar ticket
             </Button>
@@ -398,7 +399,7 @@ export default function POS() {
             >
               Vaciar ticket
             </Button>
-          </div>
+          </ActionBar>
         </Modal>
       )}
       {quote && (
@@ -416,7 +417,7 @@ export default function POS() {
             onChange={(e) => setQuoteName(e.target.value)}
           />
           {error && <ErrorState error={new Error(error)} />}
-          <div className="form-actions">
+          <ActionBar>
             <Button
               variant="secondary"
               disabled={busy}
@@ -427,7 +428,7 @@ export default function POS() {
             <Button disabled={busy} onClick={() => void saveQuote()}>
               {busy ? "Guardando…" : "Guardar proforma"}
             </Button>
-          </div>
+          </ActionBar>
         </Modal>
       )}
       {checkout && (
@@ -460,12 +461,12 @@ export default function POS() {
               </p>
             )}
           </div>
-          <div className="form-actions">
+          <ActionBar>
             <Link className="btn btn-secondary" to={`/ventas/${result.id}`}>
               Ver comprobante
             </Link>
             <Button onClick={() => setResult(null)}>Nueva venta</Button>
-          </div>
+          </ActionBar>
         </Modal>
       )}
     </>
@@ -584,7 +585,7 @@ function Checkout({
         </>
       )}
       {error && <ErrorState error={new Error(error)} />}
-      <div className="form-actions">
+      <ActionBar>
         <Button variant="secondary" disabled={busy} onClick={onClose}>
           Volver
         </Button>
@@ -599,7 +600,7 @@ function Checkout({
         >
           {busy ? "Confirmando…" : "Confirmar venta"}
         </Button>
-      </div>
+      </ActionBar>
     </Modal>
   );
 }
