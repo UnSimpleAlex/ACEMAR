@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>ACEMAR · Dispositivos de prueba</title>
+    <style>
+      body {
+        margin: 0;
+        background: #dbe2ed;
+        font: 16px system-ui;
+      }
+      nav {
+        padding: 16px;
+        display: flex;
+        gap: 24px;
+      }
+      iframe {
+        display: block;
+        border: 0;
+        margin: auto;
+        background: white;
+        max-width: none;
+        height: 850px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a href="?width=1440">PC</a><a href="?width=834">Tablet</a
+      ><a href="?width=390">Celular</a>
+    </nav>
+    <iframe title="Vista de ACEMAR" src="./pos.html"></iframe>
+    <script>
+      const width =
+        Number(new URLSearchParams(location.search).get("width")) || 390;
+      document.querySelector("iframe").style.width = width + "px";
+      const height =
+        Number(new URLSearchParams(location.search).get("height")) || 850;
+      document.querySelector("iframe").style.height = height + "px";
+    </script>
+  </body>
+</html>
