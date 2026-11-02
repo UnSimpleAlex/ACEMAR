@@ -89,11 +89,15 @@ test("POS carga imágenes redirigidas al CDN y alinea las tarjetas", async ({
     await page
       .getByRole("heading", { name: "Punto de venta", exact: true })
       .press("PageDown");
-    const pay = await page
-      .getByRole("button", { name: /Cobrar S/ })
-      .filter({ visible: true })
-      .boundingBox();
-    expect(pay!.y + pay!.height).toBeLessThanOrEqual(575);
+    await expect
+      .poll(async () => {
+        const pay = await page
+          .getByRole("button", { name: /Cobrar S/ })
+          .filter({ visible: true })
+          .boundingBox();
+        return pay ? pay.y + pay.height : Infinity;
+      })
+      .toBeLessThanOrEqual(575);
   }
   await page.screenshot({ path: info.outputPath("pos.png"), fullPage: true });
 });
