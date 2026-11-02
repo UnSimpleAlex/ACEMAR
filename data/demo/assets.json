@@ -1,0 +1,182 @@
+{
+  "bucket": "acemar-public",
+  "generated": true,
+  "assets": [
+    {
+      "code": "CEM-101",
+      "key": "products/demo/v1/CEM-101-e3b6de0a9f2e.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FCEM-101-e3b6de0a9f2e.webp?v=c3d5e7dd4dc2b0b74da8990abcb28cb3",
+      "mime": "image/webp",
+      "bytes": 49094,
+      "width": 640,
+      "height": 640,
+      "sha256": "e3b6de0a9f2e6adfc28b7c10e38f438665d18be985f7c12717835a077296c9fd",
+      "generated": true
+    },
+    {
+      "code": "ARE-102",
+      "key": "products/demo/v1/ARE-102-0219275e0f3b.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FARE-102-0219275e0f3b.webp?v=357a980a03f0b16bec2c6af2725cd76c",
+      "mime": "image/webp",
+      "bytes": 92990,
+      "width": 640,
+      "height": 640,
+      "sha256": "0219275e0f3b14191c85acfa619e21692849f2bb277f23f347ccce8051d3ed18",
+      "generated": true
+    },
+    {
+      "code": "LAD-103",
+      "key": "products/demo/v1/LAD-103-577e503e3d17.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FLAD-103-577e503e3d17.webp?v=7907263390b048f1a58bf274e924ea7c",
+      "mime": "image/webp",
+      "bytes": 35838,
+      "width": 640,
+      "height": 640,
+      "sha256": "577e503e3d179a03b7637da26d711df2401a4cded6bf4118c63fc971f557e4f5",
+      "generated": true
+    },
+    {
+      "code": "CLA-104",
+      "key": "products/demo/v1/CLA-104-3f1e52d26aca.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FCLA-104-3f1e52d26aca.webp?v=edd73be9a4a5ab0c9abd3edfe4f79122",
+      "mime": "image/webp",
+      "bytes": 82520,
+      "width": 640,
+      "height": 640,
+      "sha256": "3f1e52d26acafa5de5c66e428a693cb4b0151a724253652804c394952aec84e8",
+      "generated": true
+    },
+    {
+      "code": "TUB-105",
+      "key": "products/demo/v1/TUB-105-ac7113fcfd08.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FTUB-105-ac7113fcfd08.webp?v=6660a5267f493b7344896e338f57a827",
+      "mime": "image/webp",
+      "bytes": 18646,
+      "width": 640,
+      "height": 640,
+      "sha256": "ac7113fcfd08e478f443d5e03cf1c419600a390faf7a95478bb4db994d4ee897",
+      "generated": true
+    },
+    {
+      "code": "CAB-106",
+      "key": "products/demo/v1/CAB-106-d2f032437131.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FCAB-106-d2f032437131.webp?v=dd5b4256ae75df100a1349d48eaeacb1",
+      "mime": "image/webp",
+      "bytes": 54522,
+      "width": 640,
+      "height": 640,
+      "sha256": "d2f03243713130968db804e0356dd50d3d83229bec44945c12cf36a1a56535ed",
+      "generated": true
+    },
+    {
+      "code": "INT-107",
+      "key": "products/demo/v1/INT-107-659cbd549359.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FINT-107-659cbd549359.webp?v=5a11d47e84a839ec68407ba02f2e33e5",
+      "mime": "image/webp",
+      "bytes": 11066,
+      "width": 640,
+      "height": 640,
+      "sha256": "659cbd549359392ad3f0c778b9cf5775f4f9a8321f67f723575844eec73eec95",
+      "generated": true
+    },
+    {
+      "code": "MAR-108",
+      "key": "products/demo/v1/MAR-108-c6f2dc2eb2e1.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FMAR-108-c6f2dc2eb2e1.webp?v=faaf8d4b4de1410122244fd8dd8e8622",
+      "mime": "image/webp",
+      "bytes": 22340,
+      "width": 640,
+      "height": 640,
+      "sha256": "c6f2dc2eb2e18ff9da2744054adf00ef5ec4797b45bb88302e4491d5fd2f5311",
+      "generated": true
+    },
+    {
+      "code": "FLE-109",
+      "key": "products/demo/v1/FLE-109-225d76c932a6.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FFLE-109-225d76c932a6.webp?v=1651532960d3299f3f1a1ed04f3159e5",
+      "mime": "image/webp",
+      "bytes": 43760,
+      "width": 640,
+      "height": 640,
+      "sha256": "225d76c932a609d9673c049bce9b322b527d6b0e4f7e13ac737907111c4807d6",
+      "generated": true
+    },
+    {
+      "code": "PIN-110",
+      "key": "products/demo/v1/PIN-110-f332c2886e27.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FPIN-110-f332c2886e27.webp?v=fee0d93346c6a40a4c119f2a0b542f01",
+      "mime": "image/webp",
+      "bytes": 33874,
+      "width": 640,
+      "height": 640,
+      "sha256": "f332c2886e2741dc39d49545b09e54cd39753863e20168c006ab29900f3d938d",
+      "generated": true
+    },
+    {
+      "code": "BRO-111",
+      "key": "products/demo/v1/BRO-111-bdf28e57cad7.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FBRO-111-bdf28e57cad7.webp?v=4b5aa82689bec3ddb14cf55d222fcf6f",
+      "mime": "image/webp",
+      "bytes": 36000,
+      "width": 640,
+      "height": 640,
+      "sha256": "bdf28e57cad751319b57ab0aff9238bf04876546a47ae0cd3b5c716873fc64f4",
+      "generated": true
+    },
+    {
+      "code": "CAN-112",
+      "key": "products/demo/v1/CAN-112-8e4f88e0b8f6.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FCAN-112-8e4f88e0b8f6.webp?v=28aa6ea37ac43392edcc25f29c2938d1",
+      "mime": "image/webp",
+      "bytes": 43658,
+      "width": 640,
+      "height": 640,
+      "sha256": "8e4f88e0b8f68a522b991af9712ee67cba1e5a6cdc813c3fc41f7f914e2102a1",
+      "generated": true
+    },
+    {
+      "code": "TAL-113",
+      "key": "products/demo/v1/TAL-113-3fd229d0a276.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FTAL-113-3fd229d0a276.webp?v=26730432daec9d814ef5bfd9c8ee9f60",
+      "mime": "image/webp",
+      "bytes": 29398,
+      "width": 640,
+      "height": 640,
+      "sha256": "3fd229d0a276399f5c386a075b022a95c0f56bc7a97c6e7e5d2e858ba757a22d",
+      "generated": true
+    },
+    {
+      "code": "TOR-114",
+      "key": "products/demo/v1/TOR-114-24e62f2eaf0d.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FTOR-114-24e62f2eaf0d.webp?v=004885239926e6e66ac1e86c2d52742c",
+      "mime": "image/webp",
+      "bytes": 31300,
+      "width": 640,
+      "height": 640,
+      "sha256": "24e62f2eaf0d26723b6576b56aacc9ff55a4f7cdea80a02ec08df7cc7e1a8a0f",
+      "generated": true
+    },
+    {
+      "code": "LIJ-115",
+      "key": "products/demo/v1/LIJ-115-90fdba6d6547.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FLIJ-115-90fdba6d6547.webp?v=4c9545d4db8b8bb008a07353154cdb37",
+      "mime": "image/webp",
+      "bytes": 70722,
+      "width": 640,
+      "height": 640,
+      "sha256": "90fdba6d65477a6f7b22bc16709e040586c76142653a5f5c8f4fde16c83f0bc4",
+      "generated": true
+    },
+    {
+      "code": "COD-116",
+      "key": "products/demo/v1/COD-116-cab451bc3c42.webp",
+      "url": "https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products%2Fdemo%2Fv1%2FCOD-116-cab451bc3c42.webp?v=1cfc908a927d9bc33712a6e6f5551be3",
+      "mime": "image/webp",
+      "bytes": 13222,
+      "width": 640,
+      "height": 640,
+      "sha256": "cab451bc3c42074b5d300c71c8bd59f51f69449a40a4a5522969096ee46bac92",
+      "generated": true
+    }
+  ]
+}
