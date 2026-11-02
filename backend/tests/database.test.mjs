@@ -342,20 +342,20 @@ test("lotes y documentos incorporan la imagen por unidad sin alterar el historia
   await user(admin);
 });
 
-test("contexto IA exige administrador y aplica cuota atómica sin guardar preguntas", async () => {
+test("contexto IA exige administrador y permite más de veinte consultas sin cuota", async () => {
   await user(seller);
   await assert.rejects(
     () => call("acemar_assistant_context", []),
     /autorizada/,
   );
   await user(admin);
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 105; i++) {
     const context = await call("acemar_assistant_context", []);
     assert.ok(context.summary);
     assert.ok(Array.isArray(context.low_stock_products));
     assert.ok(context.low_stock_products.length <= 10);
   }
-  await assert.rejects(() => call("acemar_assistant_context", []), /Límite/);
+  assert.ok((await call("acemar_assistant_context", [])).summary);
   await assert.rejects(
     () => db.query("SELECT * FROM public.assistant_usage"),
     /permission denied/,
@@ -452,4 +452,218 @@ test("producto sin historial se elimina; con operaciones se conserva y las fotos
   assert.equal((await call("acemar_catalog", ["PHOTO-QA", 0])).length, 0);
   const audit = await call("acemar_list", ["audit", 0, "Eliminar producto"]);
   assert.equal(audit[0].before_data.code, "PHOTO-QA");
+});
+
+test("proformas eliminables dejan auditoría y no admiten borrar ventas vinculadas", async () => {
+  await user(admin);
+  const q = await call("acemar_quotation", [
+    JSON.stringify([{ unit_id: unit, quantity: 1 }]),
+    "Eliminar prueba",
+  ]);
+  await user(seller);
+  await assert.rejects(
+    () => call("acemar_delete_quotation", [q]),
+    /autorizada/,
+  );
+  await user(admin);
+  await call("acemar_delete_quotation", [q]);
+  await assert.rejects(
+    () => call("acemar_detail", ["quotations", q]),
+    /autorizada/,
+  );
+  await db.exec("RESET ROLE");
+  assert.equal(
+    (
+      await db.query(
+        "SELECT count(*)::int n FROM public.audit WHERE entity_id=$1 AND action='Eliminar proforma'",
+        [q],
+      )
+    ).rows[0].n,
+    1,
+  );
+  const converted = (
+    await db.query(
+      "SELECT id FROM public.quotations WHERE state='converted' LIMIT 1",
+    )
+  ).rows[0].id;
+  await user(admin);
+  await assert.rejects(
+    () => call("acemar_delete_quotation", [converted]),
+    /vinculada/,
+  );
+});
+test("boleta estable por revisión; datos privados y helpers exclusivos del servidor", async () => {
+  await user(admin);
+  const r = await call("acemar_receipt_prepare", [sale.id]);
+  assert.match(r.code, /^[a-f0-9]{64}$/);
+  assert.equal((await call("acemar_receipt_prepare", [sale.id])).code, r.code);
+  await assert.rejects(
+    () => db.query("SELECT * FROM public.sale_receipts"),
+    /permission denied/,
+  );
+  await assert.rejects(
+    () => call("acemar_receipt_lookup", [r.code]),
+    /permission denied/,
+  );
+  await assert.rejects(
+    () =>
+      call("acemar_receipt_finalize", [
+        r.code,
+        admin,
+        "receipts/" + r.code + "/test.pdf",
+        "a".repeat(64),
+        "b".repeat(64),
+        "c".repeat(64),
+      ]),
+    /permission denied/,
+  );
+  await user(seller);
+  await assert.rejects(
+    () => call("acemar_receipt_prepare", [sale.id]),
+    /autorizada/,
+  );
+  await db.exec("RESET ROLE");
+  await call("acemar_receipt_finalize", [
+    r.code,
+    admin,
+    "receipts/" + r.code + "/test.pdf",
+    "a".repeat(64),
+    "b".repeat(64),
+    "c".repeat(64),
+  ]);
+  const publicData = await call("acemar_receipt_lookup", [r.code]);
+  assert.equal(publicData.status, "cancelled");
+  assert.equal(publicData.snapshot, undefined);
+  assert.equal(publicData.customer_name, undefined);
+  await user(admin);
+});
+test("correos opcionales se guardan y rechazan valores inválidos", async () => {
+  await user(admin);
+  const id = await save("suppliers", {
+    name: "Proveedor correo",
+    email: "VENTAS@example.invalid",
+  });
+  await db.exec("RESET ROLE");
+  assert.equal(
+    (await db.query("SELECT email FROM public.suppliers WHERE id=$1", [id]))
+      .rows[0].email,
+    "ventas@example.invalid",
+  );
+  await user(admin);
+  await assert.rejects(
+    () => save("suppliers", { name: "Inválido", email: "no es correo" }),
+    /check constraint/,
+  );
+});
+test("demostración completa respeta saldos, referencias y no duplica al repetirse", async () => {
+  const { demoSeedSQL } = await import("../../scripts/demo-seed.mjs");
+  const { products } = JSON.parse(
+    await readFile("data/demo/products.json", "utf8"),
+  );
+  const assets = products.map((p, i) => ({
+    code: p.code,
+    key: `products/demo/v1/${p.code}-${"a".repeat(12)}.webp`,
+    url: "https://example.invalid/" + i,
+    bytes: 100,
+  }));
+  const sql = demoSeedSQL(products, assets, admin);
+  await db.exec("RESET ROLE");
+  await db.exec(sql);
+  const before = (
+    await db.query(
+      "SELECT sum(available)::text stock,(SELECT count(*)::int FROM public.sales) sales FROM public.lots",
+    )
+  ).rows[0];
+  await db.exec(sql);
+  const after = (
+    await db.query(
+      "SELECT sum(available)::text stock,(SELECT count(*)::int FROM public.sales) sales FROM public.lots",
+    )
+  ).rows[0];
+  assert.deepEqual(after, before);
+  assert.equal(
+    (
+      await db.query(
+        "SELECT count(*)::int n FROM public.customers WHERE name LIKE '%DEMO'",
+      )
+    ).rows[0].n,
+    4,
+  );
+  await user(admin);
+});
+
+test("corregir reemplaza el código anterior y los envíos son idempotentes", async () => {
+  await user(admin);
+  const p = (await call("acemar_catalog", ["TAL-113", 0]))[0];
+  const s = await call("acemar_checkout", [
+    crypto.randomUUID(),
+    JSON.stringify([{ unit_id: p.units[0].id, quantity: 1 }]),
+    "cash",
+    null,
+    1000,
+    null,
+  ]);
+  const r = await call("acemar_receipt_prepare", [s.id]);
+  await db.exec("RESET ROLE");
+  await call("acemar_receipt_finalize", [
+    r.code,
+    admin,
+    "receipts/" + r.code + "/test.pdf",
+    "a".repeat(64),
+    "b".repeat(64),
+    "c".repeat(64),
+  ]);
+  assert.equal((await call("acemar_receipt_lookup", [r.code])).status, "valid");
+  const request = crypto.randomUUID();
+  assert.equal(
+    (
+      await call("acemar_receipt_delivery_begin", [
+        r.code,
+        admin,
+        "demo@example.invalid",
+        request,
+      ])
+    ).claimed,
+    true,
+  );
+  assert.equal(
+    (
+      await call("acemar_receipt_delivery_begin", [
+        r.code,
+        admin,
+        "demo@example.invalid",
+        request,
+      ])
+    ).claimed,
+    false,
+  );
+  await assert.rejects(
+    () =>
+      call("acemar_receipt_delivery_begin", [
+        r.code,
+        admin,
+        "demo@example.invalid",
+        crypto.randomUUID(),
+      ]),
+    /reciente/,
+  );
+  await call("acemar_receipt_delivery_finish", [request, "sent"]);
+  await user(admin);
+  const detail = await call("acemar_detail", ["sales", s.id]);
+  await call("acemar_change_sale", [
+    s.id,
+    "correct",
+    "Corrección verificable de prueba",
+    JSON.stringify({ [detail.lines[0].id]: 2 }),
+    detail.sale.revision,
+  ]);
+  const next = await call("acemar_receipt_prepare", [s.id]);
+  assert.notEqual(next.code, r.code);
+  assert.equal(next.revision, r.revision + 1);
+  await db.exec("RESET ROLE");
+  assert.equal(
+    (await call("acemar_receipt_lookup", [r.code])).status,
+    "replaced",
+  );
+  await user(admin);
 });
