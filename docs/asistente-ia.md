@@ -10,7 +10,7 @@ El contexto incluye fecha de Lima, resumen de ventas del día, contado, abonos, 
 
 Las recomendaciones se limitan al contexto actual: no equivalen a una predicción de demanda, utilidad contable ni decisión automática. El asistente no dispone de herramientas para crear ventas, modificar inventario o conceder créditos. Los textos se muestran como texto plano, sin HTML generado.
 
-Una fila de cuota por administrador aplica 20 solicitudes por hora y 100 por día mediante UPSERT atómico. Las preguntas y respuestas no se guardan en esa tabla. Una consulta autorizada consume cuota aunque el proveedor falle; no se reintenta automáticamente para evitar consumos duplicados. La salida tiene un máximo de 1500 tokens y la solicitud externa un límite de 25 segundos. Google puede aplicar cuotas adicionales.
+Desde la migración `20261102013425` no se aplica cuota por hora ni por día en ACEMAR. La tabla histórica de uso se conserva sin incrementar contadores. Google puede aplicar sus propios límites o costes; la aplicación no puede eliminarlos. Se mantienen autorización administrativa, validación de entrada, máximo de 1500 tokens y timeout de 25 segundos. No se reintenta automáticamente.
 
 ## Operación
 
@@ -18,4 +18,4 @@ La función está en `functions/acemar-assistant.mjs`; la migración aditiva en 
 
 El origen publicado permitido es la vista previa ACEMAR, además de localhost/127.0.0.1:5173 para desarrollo. Si cambia el dominio hay que actualizar la lista explícita. La autorización del servidor se mantiene aunque un cliente no envíe Origin.
 
-Validación: pruebas locales de sesión, permisos, cuota, contexto del servidor, errores del proveedor e interfaz; respuesta real del modelo. La prueba completa desde la sesión administrativa del usuario sigue pendiente, porque no se conoce ni se restablece su contraseña.
+Validación: pruebas locales de sesión, permisos, ausencia de cuota local, contexto del servidor, errores del proveedor e interfaz; respuesta real del modelo. La prueba completa desde la sesión administrativa del usuario sigue pendiente, porque no se conoce ni se restablece su contraseña.
