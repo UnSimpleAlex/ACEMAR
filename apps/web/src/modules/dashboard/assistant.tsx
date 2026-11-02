@@ -112,12 +112,6 @@ export default function Assistant() {
           </Button>
         </>
       </section>
-      <p className="muted small">
-        Gemini recibe tu consulta, indicadores agregados y hasta diez productos
-        con stock bajo. No se envían nombres de clientes, contactos ni
-        credenciales. Revisa las recomendaciones antes de actuar. Límite: 20
-        consultas por hora y 100 al día por administrador.
-      </p>
     </>
   );
 }
