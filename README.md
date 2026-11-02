@@ -118,3 +118,7 @@ Los archivos de negocio se almacenan en Storage y sus referencias en PostgreSQL.
 `main` estable; `develop` integración; `feature/1-acemar-web` implementación. PR hacia `develop`, commits Conventional Commits en español. No se mezclan cambios ni se publica producción automáticamente.
 
 Documentación: [arquitectura](docs/architecture/decisiones.md), [validación](docs/architecture/validacion.md), [diseño](docs/design/sistema.md), [estado](docs/estado.md).
+
+## Vercel y release web
+
+La guía exacta de importación, variables públicas, dominio CORS y secretos de servidor está en [docs/despliegue-vercel.md](docs/despliegue-vercel.md). Importar la raíz como Vite, usar Node 24 y el build verificado de `vercel.json`. El backend continúa en InsForge.
