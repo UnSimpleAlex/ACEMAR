@@ -42,7 +42,8 @@ export default function Layout() {
   const loc = useLocation();
   useEffect(() => {
     setMenu(false);
-    document.getElementById("page-title")?.focus();
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.getElementById("page-title")?.focus({ preventScroll: true });
   }, [loc.pathname]);
   const allowed = links.filter((l) => !l.admin || profile?.role === "admin");
   const title = links.find((l) => l.to === loc.pathname)?.name ?? "Detalle";
