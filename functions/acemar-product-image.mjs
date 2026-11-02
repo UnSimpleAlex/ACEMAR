@@ -1,10 +1,7 @@
 /* global Deno */
+import { allowedWebOrigin } from "./web-origins.mjs";
 const BASE = "https://beft7ipm.us-east.insforge.app";
-const ORIGINS = new Set([
-  "https://acemar-preview.braceddog.chatgpt.site",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-]);
+
 const decoder = new TextDecoder();
 export function webpInfo(bytes) {
   if (
@@ -140,6 +137,7 @@ export function createImageHandler({
   makeClient,
   makeStorage,
   convert = normalize,
+  env = () => "",
 }) {
   return async (req) => {
     const origin = req.headers.get("origin"),
@@ -153,7 +151,7 @@ export function createImageHandler({
       };
     const reply = (status, data) =>
       new Response(JSON.stringify(data), { status, headers });
-    if (origin && !ORIGINS.has(origin))
+    if (origin && !allowedWebOrigin(origin, env("ALLOWED_WEB_ORIGINS")))
       return reply(403, { error: "Origen no permitido." });
     if (origin) headers["Access-Control-Allow-Origin"] = origin;
     if (req.method === "OPTIONS")
@@ -255,6 +253,7 @@ export default async function (req) {
   const { createClient, createAdminClient } =
     await import("npm:@insforge/sdk@1.5.2");
   return createImageHandler({
+    env: (name) => Deno.env.get(name),
     makeClient: (token) =>
       createClient({ baseUrl: BASE, edgeFunctionToken: token }),
     makeStorage: () =>

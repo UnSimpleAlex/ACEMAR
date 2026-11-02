@@ -9,7 +9,12 @@ const fonts = {
   ),
 };
 await mkdir(".insforge/functions", { recursive: true });
-for (const name of ["acemar-receipt", "acemar-verify-receipt"]) {
+for (const name of [
+  "acemar-receipt",
+  "acemar-verify-receipt",
+  "acemar-assistant",
+  "acemar-product-image",
+]) {
   const build = await rolldown({
     input: `functions/${name}.mjs`,
     external: (id) =>

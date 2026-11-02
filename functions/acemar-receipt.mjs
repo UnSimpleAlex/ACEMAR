@@ -1,4 +1,5 @@
 /* global Deno */
+import { allowedWebOrigin } from "./web-origins.mjs";
 import { createClient, createAdminClient } from "@insforge/sdk";
 import {
   receiptPDF,
@@ -10,11 +11,7 @@ import {
   bytesBase64,
 } from "./receipt-core.mjs";
 const BASE = "https://beft7ipm.us-east.insforge.app";
-const origins = new Set([
-  "https://acemar-preview.braceddog.chatgpt.site",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-]);
+
 const emailValid = (value) =>
   typeof value === "string" &&
   value.length <= 254 &&
@@ -60,7 +57,7 @@ export async function handleReceipt(
       }),
       { status, headers },
     );
-  if (origin && !origins.has(origin))
+  if (origin && !allowedWebOrigin(origin, env("ALLOWED_WEB_ORIGINS")))
     return reply(403, { error: "Origen no permitido." });
   if (origin) headers["Access-Control-Allow-Origin"] = origin;
   if (req.method === "OPTIONS")
