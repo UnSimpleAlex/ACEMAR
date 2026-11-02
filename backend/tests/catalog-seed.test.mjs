@@ -140,3 +140,62 @@ test("acepta la URL codificada y versionada que devuelve Storage", () => {
   }));
   assert.ok(catalogSeedSQL(products, encoded, actor).includes("%2F"));
 });
+
+test("catálogo ampliado añade ocho referencias y reemplaza doce fotos sin reponer stock", async () => {
+  const { expandedCatalogSQL } =
+    await import("../../scripts/expanded-catalog-seed.mjs");
+  const { products: expanded } = JSON.parse(
+    await readFile("data/catalog-v2/products.json", "utf8"),
+  );
+  const media = expanded.map((p, i) => ({
+    code: p.code,
+    key: `products/catalog/v2/${p.code}-012345abcdef.webp`,
+    url: `https://beft7ipm.us-east.insforge.app/api/storage/buckets/acemar-public/objects/products/catalog/v2/${p.code}-012345abcdef.webp`,
+    mime: "image/webp",
+    bytes: 12000,
+    width: 640,
+    height: 640,
+    sha256: i.toString(16).padStart(64, "0"),
+  }));
+  await db.exec("RESET ROLE");
+  // Existing demo references represent the twelve products being re-illustrated.
+  await db.exec(
+    expandedCatalogSQL(expanded.slice(0, 12), media.slice(0, 12), actor),
+  );
+  const first = expanded[0];
+  await db.query(
+    "UPDATE public.lots SET available=available-1 WHERE product_id=$1",
+    [first.product_id],
+  );
+  await db.exec(expandedCatalogSQL(expanded, media, actor));
+  const counts = (
+    await db.query(
+      "SELECT (SELECT count(*)::int FROM public.products) products,(SELECT count(*)::int FROM public.assets) assets,sum(available)::text stock FROM public.lots",
+    )
+  ).rows[0];
+  await db.exec(expandedCatalogSQL(expanded, media, actor));
+  assert.deepEqual(
+    (
+      await db.query(
+        "SELECT (SELECT count(*)::int FROM public.products) products,(SELECT count(*)::int FROM public.assets) assets,sum(available)::text stock FROM public.lots",
+      )
+    ).rows[0],
+    counts,
+  );
+  assert.equal(
+    Number(
+      (
+        await db.query(
+          "SELECT available FROM public.lots WHERE product_id=$1",
+          [first.product_id],
+        )
+      ).rows[0].available,
+    ),
+    first.stock - 1,
+  );
+  const duplicated = media.map((a) => ({ ...a, sha256: "a".repeat(64) }));
+  assert.throws(
+    () => expandedCatalogSQL(expanded, duplicated, actor),
+    /Duplicate illustration/,
+  );
+});
