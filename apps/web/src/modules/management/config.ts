@@ -1,7 +1,7 @@
 export interface Field {
   key: string;
   label: string;
-  type?: "number" | "checkbox" | "select" | "text";
+  type?: "number" | "checkbox" | "select" | "text" | "email";
   required?: boolean;
   min?: number;
   max?: number;
@@ -131,6 +131,7 @@ export const configs: Record<string, Config> = {
       { key: "name", label: "Nombre o razón social", required: true, max: 160 },
       { key: "document", label: "Documento", max: 20 },
       { key: "phone", label: "Teléfono", max: 30 },
+      { key: "email", label: "Correo electrónico", type: "email", max: 254 },
       { key: "address", label: "Dirección", max: 200 },
     ],
   },
@@ -152,6 +153,7 @@ export const configs: Record<string, Config> = {
       { key: "name", label: "Nombre", required: true, max: 160 },
       { key: "document", label: "Documento", max: 20 },
       { key: "phone", label: "Teléfono", max: 30 },
+      { key: "email", label: "Correo electrónico", type: "email", max: 254 },
       {
         key: "credit_limit",
         label: "Límite de crédito (S/)",

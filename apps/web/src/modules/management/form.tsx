@@ -1,3 +1,4 @@
+import { Upload, ImagePlus, X } from "lucide-react";
 import { ProductImage } from "../../shared/components/product-image";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +28,7 @@ export function EntityForm({
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [preview, setPreview] = useState("");
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoName, setPhotoName] = useState("");
   const [savedId, setSavedId] = useState(row?.id ?? "");
   const [partial, setPartial] = useState(false);
   useEffect(() => {
@@ -44,6 +46,7 @@ export function EntityForm({
     setPhotoBusy(true);
     try {
       setPhoto(await preparePhoto(file));
+      setPhotoName(file.name);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -129,20 +132,41 @@ export function EntityForm({
                 name={String(form.watch("name") || "Producto")}
               />
               <label htmlFor="product-photo">Imagen del producto</label>
-              <input
-                id="product-photo"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(e) => void choosePhoto(e.target.files?.[0])}
-              />
+              <div className="upload-picker">
+                <ImagePlus size={28} aria-hidden="true" />
+                <strong>
+                  {photo
+                    ? "Imagen seleccionada"
+                    : "Añade una foto del producto"}
+                </strong>
+                <span>Elige una imagen desde tu dispositivo</span>
+                <label htmlFor="product-photo" className="btn btn-secondary">
+                  <Upload size={18} />{" "}
+                  {photo ? "Cambiar imagen" : "Seleccionar archivo"}
+                </label>
+                <input
+                  id="product-photo"
+                  className="sr-only"
+                  aria-label="Imagen del producto"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(e) => void choosePhoto(e.target.files?.[0])}
+                />
+              </div>
               <small>
                 PNG, JPG o WebP, hasta 5 MB. Se optimiza como WebP y se valida
                 de nuevo en el servidor.
               </small>
+              {photoName && photo && (
+                <small>
+                  Lista para guardar: {photoName} ·{" "}
+                  {Math.ceil(photo.size / 1024)} KB
+                </small>
+              )}
               {photoBusy && <p role="status">Preparando imagen…</p>}
               {photo && (
                 <Button variant="ghost" onClick={() => setPhoto(null)}>
-                  Quitar selección
+                  <X size={16} /> Quitar selección
                 </Button>
               )}
               {!row && (
@@ -212,7 +236,9 @@ export function EntityForm({
                           ? "checkbox"
                           : f.type === "number"
                             ? "number"
-                            : "text"
+                            : f.type === "email"
+                              ? "email"
+                              : "text"
                       }
                       step={f.step}
                       min={f.min}

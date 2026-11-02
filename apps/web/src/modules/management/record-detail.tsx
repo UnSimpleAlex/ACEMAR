@@ -16,6 +16,7 @@ const names: Record<string, string> = {
   price: "Precio base",
   document: "Documento",
   phone: "Teléfono",
+  email: "Correo electrónico",
   address: "Dirección",
   balance: "Saldo",
   credit_limit: "Límite",

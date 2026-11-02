@@ -30,6 +30,7 @@ export function safeError(message: string) {
   const known = [
     "Producto con historial: no se puede eliminar",
     "Producto no disponible",
+    "Proforma vinculada a venta: no se puede eliminar",
     "Unidad base no modificable",
     "Stock insuficiente",
     "Crédito insuficiente",

@@ -434,6 +434,15 @@ export default function Management() {
                             <Trash2 size={17} /> Eliminar
                           </Button>
                         )}
+                        {module === "proformas" &&
+                          row.state !== "converted" && (
+                            <Button
+                              variant="ghost"
+                              onClick={() => confirmDelete(row)}
+                            >
+                              <Trash2 size={17} /> Eliminar proforma
+                            </Button>
+                          )}
                         {module === "proformas" && row.state === "open" && (
                           <>
                             <Button
