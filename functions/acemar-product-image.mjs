@@ -262,3 +262,17 @@ export default async function (req) {
         .storage,
   })(req);
 }
+
+export async function productImagePNG(bytes) {
+  webpInfo(bytes);
+  if (!ready) await normalize(bytes);
+  const lib = await ready;
+  return lib.ImageMagick.read(bytes, (image) => {
+    image.resize(112, 112);
+    image.strip();
+    return image.write(
+      lib.MagickFormat.Png,
+      (output) => new Uint8Array(output),
+    );
+  });
+}

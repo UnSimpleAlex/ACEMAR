@@ -71,6 +71,12 @@ export interface ReportPDFOptions {
   landscape?: boolean;
   assets?: ReportAssets;
   totals?: { label: string; value: string }[];
+  verification?: {
+    code: string;
+    url: string;
+    contentHash: string;
+    qr: { size: number; data: ArrayLike<number> };
+  };
 }
 export async function reportPDF(options: ReportPDFOptions) {
   const pdf = await PDFDocument.create();
@@ -267,11 +273,12 @@ export async function reportPDF(options: ReportPDFOptions) {
         if (bytes) {
           const image = await pdf.embedPng(bytes);
           const side = Math.min(32, widths[i] - 12);
+          const fit = image.scaleToFit(side, side);
           page.drawImage(image, {
-            x: x + (widths[i] - side) / 2,
-            y: y - heightNeeded + (heightNeeded - side) / 2,
-            width: side,
-            height: side,
+            x: x + (widths[i] - fit.width) / 2,
+            y: y - heightNeeded + (heightNeeded - fit.height) / 2,
+            width: fit.width,
+            height: fit.height,
           });
         } else
           page.drawText("Sin imagen", {
@@ -305,7 +312,7 @@ export async function reportPDF(options: ReportPDFOptions) {
   }
   if (options.totals?.length) {
     const boxHeight = options.totals.length * 25 + 20;
-    if (y - boxHeight < 90) {
+    if (y - boxHeight - 20 < 90) {
       page = pdf.addPage([width, height]);
       heading();
     }
@@ -336,6 +343,65 @@ export async function reportPDF(options: ReportPDFOptions) {
         color: blue,
       });
     });
+    y -= boxHeight;
+  }
+  if (options.verification) {
+    const v = options.verification,
+      blockHeight = 140;
+    if (y - blockHeight - 24 < 85) {
+      page = pdf.addPage([width, height]);
+      heading();
+    }
+    y -= 24;
+    page.drawRectangle({
+      x: margin,
+      y: y - blockHeight,
+      width: usable,
+      height: blockHeight,
+      color: light,
+    });
+    const qrSide = 90,
+      quiet = 4,
+      cell = qrSide / (v.qr.size + quiet * 2),
+      qx = width - margin - qrSide - 12,
+      qy = y - qrSide - 12;
+    page.drawRectangle({
+      x: qx,
+      y: qy,
+      width: qrSide,
+      height: qrSide,
+      color: rgb(1, 1, 1),
+    });
+    for (let row = 0; row < v.qr.size; row++)
+      for (let col = 0; col < v.qr.size; col++)
+        if (v.qr.data[row * v.qr.size + col])
+          page.drawRectangle({
+            x: qx + (col + quiet) * cell,
+            y: qy + qrSide - (row + quiet + 1) * cell,
+            width: cell + 0.02,
+            height: cell + 0.02,
+            color: navy,
+          });
+    let ty = y - 20;
+    for (const [label, size, b] of [
+      ["VERIFICACIÓN DE AUTENTICIDAD", 9, true],
+      ["Código: " + v.code, 7, false],
+      ["SHA-256 del contenido: " + v.contentHash, 6, false],
+      ["Escanea el QR y compara el PDF con el original.", 7, false],
+    ] as const) {
+      for (const line of wrap(label, b ? bold : font, size, usable - 128)) {
+        page.drawText(line, {
+          x: margin + 12,
+          y: ty,
+          size,
+          font: b ? bold : font,
+          color: navy,
+        });
+        ty -= 11;
+      }
+      ty -= 5;
+    }
+    y -= blockHeight;
   }
   const pages = pdf.getPages();
   pages.forEach((p, index) => {
