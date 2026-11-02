@@ -2,7 +2,21 @@ import { ProductImage } from "../../shared/components/product-image";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { Printer, ArrowLeft, ShieldCheck } from "lucide-react";
+import {
+  Printer,
+  ArrowLeft,
+  ShieldCheck,
+  Mail,
+  Download,
+  ExternalLink,
+} from "lucide-react";
+import {
+  receiptRequest,
+  decodeFile,
+  verifyReceiptURL,
+  type ReceiptResult,
+} from "./receipt-api";
+import { randomUUID } from "../../shared/uuid";
 import { rpc } from "../../shared/backend";
 import type { SaleDetail } from "../../shared/types";
 import { money, date, lineTotal, total } from "../../shared/money";
@@ -26,6 +40,14 @@ export default function Detail() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
+  const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
+  const [mailOpen, setMailOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [mailBusy, setMailBusy] = useState(false);
+  const [mailReady, setMailReady] = useState(false);
+  const [mailNotice, setMailNotice] = useState("");
+  const [mailRequestId, setMailRequestId] = useState("");
+
   if (data.isPending) return <Loading />;
   if (data.error || !data.data)
     return <ErrorState error={data.error} retry={() => void data.refetch()} />;
@@ -41,18 +63,62 @@ export default function Detail() {
     setExportBusy(true);
     setError("");
     try {
-      const { salePDF, download } = await import("../../shared/documents");
-      const { reportAssets } = await import("../../shared/report-assets");
-      const assets = await reportAssets(lines.map((l) => ({ ...l })));
-      const bytes = await salePDF({ sale, lines }, undefined, assets);
+      const { download } = await import("../../shared/download");
+      const result = await receiptRequest({
+        saleId: sale.id,
+        action: "download",
+      });
+      if (!result.pdf) throw Error();
+      setReceipt(result);
       download(
-        new Blob([new Uint8Array(bytes).buffer], { type: "application/pdf" }),
+        new Blob([decodeFile(result.pdf).buffer], { type: "application/pdf" }),
         `ACEMAR-venta-${sale.number}.pdf`,
       );
     } catch {
       setError("No se pudo generar el documento. Reintenta.");
     } finally {
       setExportBusy(false);
+    }
+  }
+  async function openMail() {
+    setMailOpen(true);
+    setMailNotice("");
+    setError("");
+    setMailRequestId(randomUUID());
+    try {
+      const status = await receiptRequest({ action: "capabilities" });
+      setMailReady(Boolean(status.emailConfigured));
+    } catch {
+      setMailReady(false);
+    }
+  }
+  async function sendMail(action: "draft" | "send") {
+    if (mailBusy || !email.trim()) return;
+    setMailBusy(true);
+    setError("");
+    setMailNotice("");
+    try {
+      const result = await receiptRequest({
+        saleId: sale.id,
+        action,
+        email: email.trim(),
+        requestId: mailRequestId,
+      });
+      if (action === "draft" && result.eml) {
+        const { download } = await import("../../shared/download");
+        download(
+          new Blob([decodeFile(result.eml).buffer], { type: "message/rfc822" }),
+          `ACEMAR-venta-${sale.number}.eml`,
+        );
+        setMailNotice(
+          "Correo preparado con el PDF adjunto. Ábrelo en tu aplicación de correo, revisa el remitente y envíalo.",
+        );
+      } else if (result.sent)
+        setMailNotice("Correo enviado al destinatario indicado.");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setMailBusy(false);
     }
   }
   async function change() {
@@ -97,16 +163,21 @@ export default function Detail() {
           </h1>
           <p>{date(sale.created_at)}</p>
         </div>
-        <Button
-          variant="secondary"
-          disabled={exportBusy}
-          onClick={() => void exportPDF()}
-        >
-          <Printer size={18} />
-          {exportBusy ? "Generando…" : "Descargar PDF"}
-        </Button>
+        <div className="heading-actions">
+          <Button variant="secondary" onClick={() => void openMail()}>
+            <Mail size={18} /> Enviar por correo
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={exportBusy}
+            onClick={() => void exportPDF()}
+          >
+            <Printer size={18} />
+            {exportBusy ? "Generando…" : "Descargar PDF verificable"}
+          </Button>
+        </div>
       </div>
-      {error && !mode && <ErrorState error={new Error(error)} />}
+      {error && !mode && !mailOpen && <ErrorState error={new Error(error)} />}
       <section className="panel receipt">
         <div className="receipt-header">
           <div className="brand">
@@ -174,6 +245,84 @@ export default function Detail() {
           )}
         </div>
       </section>
+      {receipt?.code && (
+        <section className="receipt-security">
+          <strong>Documento verificable · Revisión {receipt.revision}</strong>
+          <p>
+            <code>{receipt.code}</code>
+          </p>
+          <a
+            className="text-link"
+            href={verifyReceiptURL(receipt.code)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink size={16} /> Verificar autenticidad y archivo PDF
+          </a>
+        </section>
+      )}
+      {mailOpen && (
+        <Modal
+          title={`Enviar venta N.º ${sale.number}`}
+          description="Revisa el correo del cliente. Se adjuntará el PDF original generado por el servidor."
+          onClose={() => {
+            if (!mailBusy) setMailOpen(false);
+          }}
+        >
+          <form
+            className="receipt-mail-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (mailReady) void sendMail("send");
+            }}
+          >
+            <label htmlFor="receipt-email">Correo del cliente</label>
+            <input
+              id="receipt-email"
+              type="email"
+              required
+              maxLength={254}
+              value={email}
+              disabled={mailBusy}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="cliente@ejemplo.com"
+            />
+            <p>
+              Venta N.º {sale.number} · Total {money(sale.total)} · PDF con QR
+              de verificación.
+            </p>
+            {!mailReady && (
+              <p className="notice">
+                El envío directo aún no está disponible. Puedes descargar el
+                correo profesional con el PDF adjunto y enviarlo desde tu
+                aplicación de correo.
+              </p>
+            )}
+            {error && <ErrorState error={new Error(error)} />}
+            {mailNotice && (
+              <p role="status" className="notice">
+                {mailNotice}
+              </p>
+            )}
+            <div className="form-actions">
+              <Button
+                variant="secondary"
+                disabled={mailBusy || !email.trim()}
+                onClick={() => void sendMail("draft")}
+              >
+                <Download size={16} /> Descargar correo con PDF
+              </Button>
+              <Button
+                type="submit"
+                disabled={mailBusy || !mailReady || !email.trim()}
+              >
+                <Mail size={16} />
+                {mailBusy ? "Preparando…" : "Enviar al cliente"}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
       {profile?.role === "admin" && sale.state === "confirmed" && (
         <section className="panel admin-actions">
           <div>
