@@ -1,9 +1,9 @@
 name: Validación
 on:
   pull_request:
-    branches: [develop, main, "feature/**", "fix/**"]
+    branches: [develop, main, "feature/**", "fix/**", "release/**"]
   push:
-    branches: [develop]
+    branches: [develop, main, "release/**"]
 permissions:
   contents: read
 concurrency:
