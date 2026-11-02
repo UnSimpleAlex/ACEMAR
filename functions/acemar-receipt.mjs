@@ -19,6 +19,25 @@ const emailValid = (value) =>
   typeof value === "string" &&
   value.length <= 254 &&
   /^[^\s<>@,;:"\\]+@[a-z0-9.-]+\.[a-z]{2,63}$/i.test(value);
+export function smtpFailure(error) {
+  if (error?.code === "EAUTH" && error?.responseCode === 525)
+    return {
+      code: "SMTP_IP_NOT_AUTHORIZED",
+      message:
+        "Brevo bloqueó la IP de salida del servidor. El administrador debe autorizarla en Brevo → Seguridad → IP autorizadas. No se confirmó el envío.",
+    };
+  if (error?.code === "EAUTH")
+    return {
+      code: "SMTP_AUTH_FAILED",
+      message:
+        "El proveedor rechazó las credenciales de correo. Contacta al administrador. No se confirmó el envío.",
+    };
+  return {
+    code: "SMTP_DELIVERY_UNKNOWN",
+    message:
+      "No se pudo confirmar el envío. Revisa el correo antes de intentar enviarlo nuevamente.",
+  };
+}
 export async function handleReceipt(
   req,
   { userClient, admin, env, render = receiptPDF, sendMail },
@@ -32,8 +51,15 @@ export async function handleReceipt(
       "Access-Control-Allow-Headers":
         "Content-Type, Authorization, apikey, x-client-info",
     };
+  // The SDK reads message for HTTP failures; error alone loses the explanation.
   const reply = (status, data) =>
-    new Response(JSON.stringify(data), { status, headers });
+    new Response(
+      JSON.stringify({
+        ...data,
+        ...(data.error ? { message: data.error } : {}),
+      }),
+      { status, headers },
+    );
   if (origin && !origins.has(origin))
     return reply(403, { error: "Origen no permitido." });
   if (origin) headers["Access-Control-Allow-Origin"] = origin;
@@ -197,14 +223,18 @@ export async function handleReceipt(
         p_status: "sent",
       });
       return reply(200, { sent: true });
-    } catch {
+    } catch (error) {
+      const failure = smtpFailure(error);
+      console.warn(
+        JSON.stringify({ event: "receipt_smtp_failed", code: failure.code }),
+      );
       await admin.database.rpc("acemar_receipt_delivery_finish", {
         p_id: body.requestId,
         p_status: "unknown",
       });
       return reply(502, {
-        error:
-          "No se pudo confirmar el envío. Revisa el correo antes de intentar enviarlo nuevamente.",
+        code: failure.code,
+        error: failure.message,
       });
     }
   } catch {

@@ -13,6 +13,8 @@ import {
 import { verifyRequest } from "../../../../functions/acemar-verify-receipt.mjs";
 // @ts-expect-error Server module is JavaScript with injectable dependencies.
 import { handleReceipt } from "../../../../functions/acemar-receipt.mjs";
+// @ts-expect-error Server module is JavaScript with injectable dependencies.
+import { smtpFailure } from "../../../../functions/acemar-receipt.mjs";
 const secret = "test-only-".repeat(8);
 const row = {
   code: "a".repeat(64),
@@ -46,6 +48,22 @@ const row = {
   },
 };
 describe("boletas verificables", () => {
+  it("distingue el bloqueo por IP sin revelar credenciales SMTP", () => {
+    const rejected = smtpFailure({
+      code: "EAUTH",
+      responseCode: 525,
+      message: "secret-password",
+    });
+    expect(rejected.code).toBe("SMTP_IP_NOT_AUTHORIZED");
+    expect(rejected.message).toContain("IP de salida");
+    expect(JSON.stringify(rejected)).not.toContain("secret-password");
+    expect(smtpFailure({ code: "EAUTH", responseCode: 535 }).code).toBe(
+      "SMTP_AUTH_FAILED",
+    );
+    expect(smtpFailure({ code: "ETIMEDOUT" }).code).toBe(
+      "SMTP_DELIVERY_UNKNOWN",
+    );
+  });
   it("detecta cambios del archivo, contenido, código y firma", async () => {
     const r = { ...row, signature: await signReceipt(row, secret) };
     expect(await validReceipt(r, secret)).toBe(true);
